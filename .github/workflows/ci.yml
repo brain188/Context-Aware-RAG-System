@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-asyncio ruff black pydantic pydantic-settings tiktoken pymupdf
+
+      - name: Ruff (lint + import order)
+        run: ruff check .
+
+      - name: Black (format check)
+        run: black --check --line-length 100 app pipeline tests evaluation
+
+      - name: Pytest
+        env:
+          LLM_API_KEY: test-key-for-ci
+        run: pytest -q

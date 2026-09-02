@@ -1,0 +1,36 @@
+[project]
+name = "rag-pipeline"
+version = "0.1.0"
+description = "Offline ingestion pipeline for the personal RAG system"
+requires-python = ">=3.11"
+
+dependencies = [
+    "pymupdf>=1.24.0",
+    "sentence-transformers>=2.7.0",
+    "FlagEmbedding>=1.2.0",
+    "tiktoken>=0.7.0",
+    "qdrant-client>=1.9.0",
+    "rank-bm25>=0.2.2",
+    "pydantic>=2.7.0",
+    "pydantic-settings>=2.3.0",
+    "torch>=2.3.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "ruff>=0.4.0",
+    "black>=24.0.0",
+]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]

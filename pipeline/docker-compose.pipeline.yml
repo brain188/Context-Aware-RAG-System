@@ -1,0 +1,38 @@
+version: "3.9"
+
+# Run ingestion and its dependencies independently of the runtime app.
+# Usage: docker compose -f pipeline/docker-compose.pipeline.yml up
+
+services:
+  qdrant:
+    image: qdrant/qdrant:v1.9.2
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant_pipeline_data:/qdrant/storage
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6333/readyz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ingest:
+    build:
+      context: ..
+      dockerfile: pipeline/Dockerfile.pipeline
+    env_file:
+      - ../infra/.env
+    volumes:
+      - ../data:/app/data          # BM25 corpus output
+      - ${BOOKS_DIR:-../books}:/books:ro   # mount your PDF library here
+    depends_on:
+      qdrant:
+        condition: service_healthy
+    command: >
+      python -m pipeline.ingest
+      --path /books
+    profiles:
+      - run  # start with: docker compose ... --profile run up
+
+volumes:
+  qdrant_pipeline_data:

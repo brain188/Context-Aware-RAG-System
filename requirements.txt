@@ -1,0 +1,39 @@
+# API layer
+fastapi
+uvicorn[standard]
+pydantic
+pydantic-settings
+sse-starlette
+
+# PDF parsing & structure extraction
+pymupdf          # fast text + layout extraction
+marker-pdf       # better structure/table/equation preservation (slower)
+python-dotenv
+
+# Chunking / text processing
+tiktoken          # token counting for chunk sizing
+
+# Embeddings
+sentence-transformers           # bge-large / gte-large
+FlagEmbedding                   # bge-reranker cross-encoder
+
+# Retrieval
+qdrant-client
+rank-bm25               # keyword/BM25 side of hybrid search
+redis
+
+# LLM
+anthropic             # Claude API client
+
+# Evaluation
+ragas
+datasets
+
+# Frontend (v1)
+streamlit
+
+# Dev / testing
+pytest
+pytest-asyncio
+ruff                # lint + format
+black
