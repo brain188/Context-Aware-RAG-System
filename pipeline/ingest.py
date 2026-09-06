@@ -47,7 +47,11 @@ logger = get_logger(__name__)
 
 def _get_qdrant() -> QdrantClient:
     settings = get_settings()
-    return QdrantClient(url=settings.qdrant_url, api_key=settings.qdrant_api_key)
+    return QdrantClient(
+        url=settings.qdrant_url,
+        api_key=settings.qdrant_api_key,
+        timeout=settings.qdrant_timeout_seconds,
+    )
 
 
 def _ensure_collection(client: QdrantClient) -> None:

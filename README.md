@@ -51,7 +51,8 @@ cp infra/.env.example infra/.env   # then fill in LLM_API_KEY
 ## Running the ingestion pipeline
 
 ```bash
-python -m pipeline.ingest path/to/books/          # a folder or a single PDF
+python -m pipeline.ingest --path books/                      # every PDF in a folder
+python -m pipeline.ingest --path books/bishop.pdf --title "Bishop PRML"   # one book
 ```
 
 Ingestion is idempotent per book: re-running one book replaces its chunks rather than

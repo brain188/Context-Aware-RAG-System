@@ -9,9 +9,14 @@ import logging
 import os
 import sys
 from functools import lru_cache
+from pathlib import Path
 from typing import Literal
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Repo root, resolved from this file so config loads regardless of working directory.
+_ROOT = Path(__file__).resolve().parent.parent
 
 
 class Settings(BaseSettings):
@@ -22,7 +27,8 @@ class Settings(BaseSettings):
     """
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        # infra/.env is the canonical location; a root .env overrides it for local runs.
+        env_file=(_ROOT / "infra" / ".env", _ROOT / ".env"),
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",
@@ -36,11 +42,16 @@ class Settings(BaseSettings):
     qdrant_url: str = "http://localhost:6333"
     qdrant_collection: str = "rag_chunks"
     qdrant_api_key: str | None = None
+    # Client default is 5s — too tight for collection creation on a cold server
+    # and for large upsert batches.
+    qdrant_timeout_seconds: int = 60
 
     # --- Embedding model ---
-    embedding_model: str = "BAAI/bge-large-en-v1.5"
+    embedding_model: str = "BAAI/bge-base-en-v1.5"
     embedding_batch_size: int = 32
-    embedding_dimension: int = 1024
+    # Must match embedding_model's output width: bge-base=768, bge-large=1024.
+    # A mismatch is silent until Qdrant rejects the upsert.
+    embedding_dimension: int = 768
 
     # --- Reranker model ---
     reranker_model: str = "BAAI/bge-reranker-large"
@@ -68,6 +79,16 @@ class Settings(BaseSettings):
 
     # --- BM25 keyword index ---
     bm25_corpus_path: str = "data/bm25_corpus.jsonl"
+
+    @field_validator("qdrant_api_key", mode="after")
+    @classmethod
+    def _blank_api_key_is_none(cls, v: str | None) -> str | None:
+        """Treat a blank QDRANT_API_KEY as absent.
+
+        An empty string is truthy enough for QdrantClient to send an auth
+        header and warn about insecure transport; local Qdrant wants no key.
+        """
+        return v or None
 
 
 # ---------------------------------------------------------------------------

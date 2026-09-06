@@ -27,11 +27,45 @@ class TestSettings:
         assert s.rerank_top_k == 5
 
     def test_missing_llm_api_key_raises(self) -> None:
-        """Missing LLM_API_KEY must raise ValidationError, not silently default."""
+        """Missing LLM_API_KEY must raise ValidationError, not silently default.
+
+        _env_file=None disables dotenv loading so the developer's real infra/.env
+        cannot mask the failure this test exists to catch.
+        """
         env = {k: v for k, v in os.environ.items() if k.upper() != "LLM_API_KEY"}
         with patch.dict(os.environ, env, clear=True):
             with pytest.raises(ValidationError):
-                Settings()
+                Settings(_env_file=None)
+
+    def test_blank_qdrant_api_key_becomes_none(self) -> None:
+        """A blank QDRANT_API_KEY must normalise to None.
+
+        An empty string makes QdrantClient send an auth header and warn about
+        insecure transport; local Qdrant expects no key at all.
+        """
+        with patch.dict(
+            os.environ, {"LLM_API_KEY": "sk-test-key", "QDRANT_API_KEY": ""}, clear=False
+        ):
+            s = Settings(_env_file=None)
+        assert s.qdrant_api_key is None
+
+    def test_qdrant_api_key_preserved_when_set(self) -> None:
+        """A real QDRANT_API_KEY must survive the blank-to-None validator."""
+        with patch.dict(
+            os.environ, {"LLM_API_KEY": "sk-test-key", "QDRANT_API_KEY": "secret"}, clear=False
+        ):
+            s = Settings(_env_file=None)
+        assert s.qdrant_api_key == "secret"
+
+    def test_embedding_dimension_matches_default_model(self) -> None:
+        """Default dimension must match the default model's width (bge-base = 768).
+
+        A mismatch is silent until Qdrant rejects every upsert.
+        """
+        with patch.dict(os.environ, {"LLM_API_KEY": "sk-test-key"}, clear=False):
+            s = Settings(_env_file=None)
+        assert s.embedding_model == "BAAI/bge-base-en-v1.5"
+        assert s.embedding_dimension == 768
 
     def test_env_overrides_defaults(self) -> None:
         """Explicit environment variables should override all defaults."""
