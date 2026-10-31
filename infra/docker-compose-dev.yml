@@ -1,9 +1,35 @@
-# Local dev backing services: vector store + cache.
+# Local dev backing services: vector store + cache, plus the API behind a profile.
 # Usage (from repo root):
-#   docker compose -f infra/docker-compose-dev.yml up -d
+#   docker compose -f infra/docker-compose-dev.yml up -d                  # Qdrant + Redis
+#   docker compose -f infra/docker-compose-dev.yml --profile app up -d    # + API with hot reload
 name: rag-dev
 
 services:
+  api:
+    profiles: ["app"]
+    build:
+      context: ..
+      dockerfile: app/Dockerfile
+    container_name: rag-api
+    env_file: .env
+    environment:
+      # Service names, not localhost, inside the compose network.
+      QDRANT_URL: http://qdrant:6333
+      REDIS_URL: redis://redis:6379
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../app:/srv/app:ro            # hot reload from the working tree
+      - ../data:/srv/data             # query log
+      - hf_cache:/home/app/.cache/huggingface   # keep downloaded models across rebuilds
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000",
+              "--reload", "--reload-dir", "/srv/app"]
+    depends_on:
+      qdrant:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
   qdrant:
     # >= v1.16 required (parameterized RRF in hybrid queries); keep in step with qdrant-client.
     image: qdrant/qdrant:v1.18.0
@@ -44,3 +70,4 @@ services:
 volumes:
   qdrant_storage:
   redis_data:
+  hf_cache:

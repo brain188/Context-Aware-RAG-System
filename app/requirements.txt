@@ -1,0 +1,12 @@
+# Runtime dependencies of the API image only (no pipeline, eval, or UI packages).
+# torch is installed separately in app/Dockerfile from the CPU wheel index.
+fastapi==0.139.2
+uvicorn[standard]==0.51.0
+sse-starlette==3.4.5
+pydantic==2.13.4
+pydantic-settings==2.14.2
+qdrant-client==1.18.0
+redis==8.0.1
+anthropic==0.46.0
+sentence-transformers==5.6.0
+numpy==2.4.6
