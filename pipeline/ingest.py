@@ -47,7 +47,8 @@ def ingest_book(pdf_path: str | Path, book_title: str) -> dict:
         elapsed_seconds, status ("ok" | "error"), and optional detail.
     """
     start = time.perf_counter()
-    pdf_path = Path(pdf_path)
+    # Absolute, so CLI and API ingests of the same file share one source_path key.
+    pdf_path = Path(pdf_path).resolve()
     logger.info("Ingest started: book='%s' path='%s'", book_title, pdf_path)
 
     # Connect before the slow embedding step so store/auth/schema problems fail in seconds.
@@ -77,7 +78,7 @@ def ingest_book(pdf_path: str | Path, book_title: str) -> dict:
 
     chunks = embed_chunks(chunks)
 
-    delete_book_chunks(client, str(pdf_path), settings)
+    delete_book_chunks(client, str(pdf_path), book_title, settings)
     upsert_chunks(client, chunks, settings)
 
     elapsed = time.perf_counter() - start

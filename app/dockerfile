@@ -1,0 +1,31 @@
+# Runtime API image. Build from the repo root:
+#   docker build -f app/Dockerfile -t rag-api .
+# The ingestion pipeline is not included: POST /api/ingest returns 501 here.
+FROM python:3.11-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    HF_HOME=/home/app/.cache/huggingface
+
+WORKDIR /srv
+
+# Dependency layers first so code changes don't reinstall them.
+# CPU-only torch: the CUDA build would add ~2 GB the API does not use.
+RUN pip install torch==2.13.0 --index-url https://download.pytorch.org/whl/cpu
+COPY app/requirements.txt /tmp/requirements.txt
+RUN pip install -r /tmp/requirements.txt
+
+RUN useradd --create-home --uid 1000 app \
+    && mkdir -p /srv/data \
+    && chown app:app /srv/data
+COPY --chown=app:app app/ ./app/
+USER app
+
+EXPOSE 8000
+# Readiness: /health returns 503 until Qdrant and the embedding model are available.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=180s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=4)"
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

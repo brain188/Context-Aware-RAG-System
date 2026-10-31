@@ -7,6 +7,7 @@ re-ingesting the vector store.
 
 from __future__ import annotations
 
+from typing import Literal
 from uuid import uuid4
 
 from pydantic import BaseModel, Field, model_validator
@@ -88,11 +89,16 @@ class Citation(BaseModel):
     page_end: int
     chunk_id: str
     score: float  # rerank score; higher = more relevant
+    label: str = ""  # human-readable "Book → Chapter → pp. x–y"
+    marker: str = ""  # inline marker used in the answer text, e.g. "[S1]"
 
 
 # ---------------------------------------------------------------------------
 # Query API
 # ---------------------------------------------------------------------------
+
+# How the answer was produced; clients should flag anything but "answered".
+AnswerStatus = Literal["answered", "low_confidence", "not_covered"]
 
 
 class QueryRequest(BaseModel):
@@ -120,12 +126,18 @@ class StreamToken(BaseModel):
 
 
 class Answer(BaseModel):
-    """Final answer payload, sent after the last stream token."""
+    """Final answer payload, sent after the last stream token.
+
+    Authoritative over the streamed tokens: guardrails may rewrite the text
+    after streaming (e.g. strip an invalid citation marker).
+    """
 
     text: str
     citations: list[Citation]
     request_id: str
     session_id: str | None = None
+    status: AnswerStatus = "answered"
+    cache_hit: bool = False
 
 
 class QueryResponse(BaseModel):
@@ -157,6 +169,47 @@ class IngestResponse(BaseModel):
     elapsed_seconds: float
     status: str  # "ok" | "error"
     detail: str | None = None
+
+
+IngestJobState = Literal["queued", "running", "succeeded", "failed"]
+
+
+class IngestJob(BaseModel):
+    """Status of an asynchronous ingest started via POST /api/ingest."""
+
+    job_id: str
+    book_title: str
+    source_path: str
+    state: IngestJobState
+    result: IngestResponse | None = None
+    error: str | None = None
+
+
+# ---------------------------------------------------------------------------
+# Library browsing
+# ---------------------------------------------------------------------------
+
+
+class BookInfo(BaseModel):
+    """One indexed book and its chapters, for populating UI filters."""
+
+    title: str
+    chunk_count: int
+    chapters: list[str]
+
+
+class LibraryResponse(BaseModel):
+    """Everything currently indexed."""
+
+    books: list[BookInfo]
+
+
+class ChunkSource(BaseModel):
+    """A stored chunk's text and location, for checking a citation against its source."""
+
+    chunk_id: str
+    text: str
+    metadata: ChunkMetadata
 
 
 # ---------------------------------------------------------------------------

@@ -34,5 +34,6 @@ streamlit
 # Dev / testing
 pytest
 pytest-asyncio
+fakeredis           # in-memory Redis for service/API tests
 ruff                # lint + format
 black

@@ -95,9 +95,10 @@ def _vs_settings(**overrides: Any) -> Settings:
     )
 
 
-def _embedded_chunk(text: str, source_path: str = "/books/test.pdf") -> Chunk:
+def _embedded_chunk(text: str, source_path: str = "/books/test.pdf", book: str = "") -> Chunk:
     chunk = _make_chunk(text, f"hash-{text}")
     chunk.metadata.source_path = source_path
+    chunk.metadata.book = book or source_path
     chunk.embedding = [0.1, 0.2, 0.3]
     chunk.chunk_id = str(uuid.uuid4())
     return chunk
@@ -164,8 +165,20 @@ class TestUpsertAndDelete:
         upsert_chunks(client, [_embedded_chunk("a", "/books/a.pdf")], settings)
         upsert_chunks(client, [_embedded_chunk("b", "/books/b.pdf")], settings)
 
-        delete_book_chunks(client, "/books/a.pdf", settings)
+        delete_book_chunks(client, "/books/a.pdf", "/books/a.pdf", settings)
         upsert_chunks(client, [_embedded_chunk("a v2", "/books/a.pdf")], settings)
 
         records, _ = client.scroll(settings.qdrant_collection, with_payload=True)
         assert sorted(r.payload["text"] for r in records) == ["a v2", "b"]
+
+    def test_reingest_under_a_new_path_replaces_the_old_chunks(self) -> None:
+        settings = _vs_settings()
+        client = QdrantClient(location=":memory:")
+        ensure_collection(client, settings)
+        upsert_chunks(client, [_embedded_chunk("old", "books\a.pdf", book="A")], settings)
+        upsert_chunks(client, [_embedded_chunk("other", "/books/b.pdf", book="B")], settings)
+
+        delete_book_chunks(client, "C:\repo\books\a.pdf", "A", settings)
+
+        records, _ = client.scroll(settings.qdrant_collection, with_payload=True)
+        assert [r.payload["text"] for r in records] == ["other"]

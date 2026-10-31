@@ -19,13 +19,13 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest pytest-asyncio ruff black pydantic pydantic-settings pymupdf qdrant-client tokenizers huggingface_hub httpx
+          pip install pytest pytest-asyncio fakeredis ruff black pydantic pydantic-settings pymupdf qdrant-client tokenizers huggingface_hub httpx fastapi sse-starlette redis anthropic==0.46.0
 
       - name: Ruff (lint + import order)
         run: ruff check .
 
       - name: Black (format check)
-        run: black --check --line-length 100 app pipeline tests evaluation
+        run: black --check --line-length 100 app pipeline tests evaluation frontend
 
       - name: Pytest
         env:

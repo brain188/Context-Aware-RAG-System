@@ -17,12 +17,22 @@ from qdrant_client.models import (
     Filter,
     MatchValue,
     Modifier,
+    PayloadSchemaType,
     PointStruct,
     SparseVectorParams,
     VectorParams,
 )
 
 logger = get_logger(__name__)
+
+# Payload fields the app filters or facets on (keys must match ChunkMetadata).
+_PAYLOAD_INDEXES = {
+    "book": PayloadSchemaType.KEYWORD,
+    "chapter": PayloadSchemaType.KEYWORD,
+    "source_path": PayloadSchemaType.KEYWORD,
+    "page_start": PayloadSchemaType.INTEGER,
+    "page_end": PayloadSchemaType.INTEGER,
+}
 
 
 class CollectionSchemaError(RuntimeError):
@@ -77,6 +87,9 @@ def _schema_problems(info: CollectionInfo, settings: Settings) -> list[str]:
 def ensure_collection(client: QdrantClient, settings: Settings) -> None:
     """Create the collection if missing; otherwise verify its schema matches.
 
+    Either way, make sure the payload indexes exist (adding an index to an
+    existing collection is safe and needs no re-ingest).
+
     Raises:
         CollectionSchemaError: if the existing collection has a different schema
             (e.g. created before sparse vectors were added).
@@ -88,25 +101,51 @@ def ensure_collection(client: QdrantClient, settings: Settings) -> None:
             collection_name=name, vectors_config=dense, sparse_vectors_config=sparse
         )
         logger.info("Created Qdrant collection '%s' (dense + bm25 sparse).", name)
-        return
+    else:
+        problems = _schema_problems(client.get_collection(name), settings)
+        if problems:
+            raise CollectionSchemaError(
+                f"Collection '{name}' has an outdated schema: {'; '.join(problems)}. "
+                f"Delete it (DELETE {settings.qdrant_url}/collections/{name}) and re-ingest "
+                "all books."
+            )
+    _ensure_payload_indexes(client, name)
 
-    problems = _schema_problems(client.get_collection(name), settings)
-    if problems:
-        raise CollectionSchemaError(
-            f"Collection '{name}' has an outdated schema: {'; '.join(problems)}. "
-            f"Delete it (DELETE {settings.qdrant_url}/collections/{name}) and re-ingest all books."
-        )
+
+def _ensure_payload_indexes(client: QdrantClient, collection: str) -> None:
+    """Index the payload fields the app filters and facets on.
+
+    Filters work without indexes (slower), but facets — used to list books and
+    chapters — require a keyword index on a Qdrant server.
+    """
+    existing = client.get_collection(collection).payload_schema or {}
+    for field, schema in _PAYLOAD_INDEXES.items():
+        if field not in existing:
+            client.create_payload_index(collection, field_name=field, field_schema=schema)
+            logger.info("Created payload index '%s' (%s) on '%s'.", field, schema, collection)
 
 
-def delete_book_chunks(client: QdrantClient, source_path: str, settings: Settings) -> None:
-    """Delete all points for this book (enables idempotent re-ingest)."""
+def delete_book_chunks(
+    client: QdrantClient, source_path: str, book_title: str, settings: Settings
+) -> None:
+    """Delete all points for this book (enables idempotent re-ingest).
+
+    Matches the file *or* the title, so a book ingested earlier under another
+    path spelling (e.g. relative before paths were made absolute) is replaced,
+    not duplicated.
+    """
     client.delete(
         collection_name=settings.qdrant_collection,
         points_selector=Filter(
-            must=[FieldCondition(key="source_path", match=MatchValue(value=source_path))]
+            should=[
+                FieldCondition(key="source_path", match=MatchValue(value=source_path)),
+                FieldCondition(key="book", match=MatchValue(value=book_title)),
+            ]
         ),
     )
-    logger.info("Cleared existing chunks for source_path='%s'.", source_path)
+    logger.info(
+        "Cleared existing chunks for book='%s' / source_path='%s'.", book_title, source_path
+    )
 
 
 def build_points(

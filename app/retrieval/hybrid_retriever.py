@@ -83,10 +83,13 @@ class HybridRetriever:
         request_id: str,
         filters: RetrievalFilter | None = None,
         limit: int | None = None,
+        query_vector: list[float] | None = None,
     ) -> list[ScoredChunk]:
         """Return up to *limit* fused candidates (default RETRIEVAL_TOP_K), best first.
 
-        Scores are RRF scores. Metadata filters scope both prefetches.
+        Scores are RRF scores. Metadata filters scope both prefetches. Pass
+        *query_vector* when the caller already embedded *query* (e.g. for the
+        semantic cache) to skip embedding it again.
 
         Raises:
             ValueError: if *query* is blank.
@@ -98,8 +101,10 @@ class HybridRetriever:
         limit = limit or self._candidate_k
         start = time.perf_counter()
 
-        loop = asyncio.get_running_loop()
-        dense = await loop.run_in_executor(None, self._embedder.embed_query, query)
+        dense = query_vector
+        if dense is None:
+            loop = asyncio.get_running_loop()
+            dense = await loop.run_in_executor(None, self._embedder.embed_query, query)
         sparse = self._sparse.encode_query(query)
         qdrant_filter = to_qdrant_filter(filters)
 

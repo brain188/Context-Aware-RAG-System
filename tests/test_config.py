@@ -2,6 +2,8 @@
 
 import logging
 import os
+import re
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
@@ -133,3 +135,28 @@ class TestGetLogger:
         a = get_logger("test.config.idempotent")
         b = get_logger("test.config.idempotent")
         assert a is b
+
+
+class TestEnvExample:
+    """infra/.env.example is the human-readable config contract; keep it in step with Settings."""
+
+    _PATH = Path(__file__).resolve().parent.parent / "infra" / ".env.example"
+
+    def _documented_keys(self) -> set[str]:
+        keys = set()
+        for line in self._PATH.read_text(encoding="utf-8").splitlines():
+            match = re.match(r"^#?\s*([A-Z][A-Z0-9_]*)=", line)
+            if match:
+                keys.add(match.group(1).lower())
+        return keys
+
+    def test_documents_every_setting(self) -> None:
+        missing = set(Settings.model_fields) - self._documented_keys()
+        assert not missing, f"Add to infra/.env.example: {sorted(k.upper() for k in missing)}"
+
+    def test_documents_nothing_settings_ignores(self) -> None:
+        unknown = self._documented_keys() - set(Settings.model_fields)
+        assert not unknown, f"Remove from infra/.env.example: {sorted(k.upper() for k in unknown)}"
+
+    def test_loads_as_valid_settings(self) -> None:
+        Settings(_env_file=self._PATH)

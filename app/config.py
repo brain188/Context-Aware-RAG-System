@@ -72,17 +72,47 @@ class Settings(BaseSettings):
     llm_api_key: str  # REQUIRED — no default; absence raises ValidationError at startup
     llm_max_tokens: int = 2048
     llm_temperature: float = 0.2
+    llm_timeout_seconds: float = 60.0
+    llm_max_retries: int = 2  # SDK retries 429/5xx/connection errors with backoff
+    # Short auxiliary calls (follow-up rewrite, retrieval grading).
+    llm_rewrite_max_tokens: int = 200
+    llm_grader_max_tokens: int = 300
+    # Template set under app/prompts/templates/; bump to roll out (and evaluate) new prompts.
+    prompt_version: str = "v1"
 
     # --- Redis ---
     redis_url: str = "redis://localhost:6379"
-    redis_ttl_seconds: int = 3600
+    redis_ttl_seconds: int = 3600  # conversation session expiry
+    conversation_max_turns: int = 6  # prior turns kept for follow-up rewriting
 
     # --- Retrieval ---
     retrieval_top_k: int = 20
     # Reciprocal-rank-fusion constant; 60 is the value from the original RRF paper.
     rrf_k: int = 60
     rerank_top_k: int = 5
-    semantic_cache_threshold: float = 0.92
+    # Top rerank score below which retrieval grades "none" without an LLM call.
+    # bge-reranker scores are sigmoid relevance in [0, 1]; tune on the eval set.
+    grade_min_rerank_score: float = 0.05
+
+    # --- Semantic cache ---
+    semantic_cache_enabled: bool = True
+    semantic_cache_threshold: float = 0.92  # cosine similarity of query embeddings
+    semantic_cache_ttl_seconds: int = 86400
+    semantic_cache_max_entries: int = 500  # per index version + filter scope
+
+    # --- Guardrails ---
+    input_min_chars: int = 3
+
+    # --- Query log (JSONL, rotated) ---
+    query_log_path: Path = _ROOT / "data" / "query_log.jsonl"
+    query_log_max_bytes: int = 10_000_000
+    query_log_backup_count: int = 5
+
+    # --- API runtime ---
+    # POST /api/ingest only reads PDFs inside this folder.
+    ingest_books_dir: Path = _ROOT / "books"
+    warm_models_on_startup: bool = True
+    health_timeout_seconds: float = 5.0
 
     # --- Chunking (counted with the embedding model's tokenizer) ---
     chunk_min_tokens: int = 100
