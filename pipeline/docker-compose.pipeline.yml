@@ -5,13 +5,15 @@ version: "3.9"
 
 services:
   qdrant:
-    image: qdrant/qdrant:v1.9.2
+    # >= v1.16 required (parameterized RRF in hybrid queries); keep in step with qdrant-client.
+    image: qdrant/qdrant:v1.18.0
     ports:
       - "6333:6333"
     volumes:
       - qdrant_pipeline_data:/qdrant/storage
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:6333/readyz"]
+      # Qdrant images ship no curl/wget; use bash's TCP check instead.
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/127.0.0.1/6333' || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -23,7 +25,6 @@ services:
     env_file:
       - ../infra/.env
     volumes:
-      - ../data:/app/data          # BM25 corpus output
       - ${BOOKS_DIR:-../books}:/books:ro   # mount your PDF library here
     depends_on:
       qdrant:

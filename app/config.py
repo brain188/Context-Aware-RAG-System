@@ -12,7 +12,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
-from pydantic import field_validator
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Repo root, resolved from this file so config loads regardless of working directory.
@@ -45,6 +45,10 @@ class Settings(BaseSettings):
     # Client default is 5s — too tight for collection creation on a cold server
     # and for large upsert batches.
     qdrant_timeout_seconds: int = 60
+    # Named vectors in the collection; pipeline writes and app queries both.
+    # Changing either requires recreating the collection and re-ingesting.
+    qdrant_dense_vector_name: str = "dense"
+    qdrant_sparse_vector_name: str = "bm25"
 
     # --- Embedding model ---
     embedding_model: str = "BAAI/bge-base-en-v1.5"
@@ -52,9 +56,15 @@ class Settings(BaseSettings):
     # Must match embedding_model's output width: bge-base=768, bge-large=1024.
     # A mismatch is silent until Qdrant rejects the upsert.
     embedding_dimension: int = 768
+    # Longest input the model reads, in its own tokens including [CLS]/[SEP];
+    # anything longer is silently truncated (512 for all bge v1.5 models).
+    embedding_max_tokens: int = 512
+    # bge v1.5 models retrieve better when queries (not passages) carry this prefix.
+    embedding_query_instruction: str = "Represent this sentence for searching relevant passages: "
 
     # --- Reranker model ---
-    reranker_model: str = "BAAI/bge-reranker-large"
+    reranker_model: str = "BAAI/bge-reranker-base"
+    rerank_batch_size: int = 16
 
     # --- LLM ---
     llm_provider: str = "anthropic"
@@ -69,16 +79,21 @@ class Settings(BaseSettings):
 
     # --- Retrieval ---
     retrieval_top_k: int = 20
+    # Reciprocal-rank-fusion constant; 60 is the value from the original RRF paper.
+    rrf_k: int = 60
     rerank_top_k: int = 5
     semantic_cache_threshold: float = 0.92
 
-    # --- Chunking ---
+    # --- Chunking (counted with the embedding model's tokenizer) ---
     chunk_min_tokens: int = 100
-    chunk_max_tokens: int = 512
+    chunk_max_tokens: int = 512  # includes [CLS]/[SEP]; must be <= embedding_max_tokens
     chunk_overlap_tokens: int = 50
 
-    # --- BM25 keyword index ---
-    bm25_corpus_path: str = "data/bm25_corpus.jsonl"
+    # --- BM25 sparse vectors (term-frequency half; Qdrant applies IDF at query time) ---
+    bm25_k1: float = 1.2
+    bm25_b: float = 0.75
+    # Typical chunk length in words, for BM25 length normalization.
+    bm25_avg_doc_length: float = 256.0
 
     @field_validator("qdrant_api_key", mode="after")
     @classmethod
@@ -89,6 +104,16 @@ class Settings(BaseSettings):
         header and warn about insecure transport; local Qdrant wants no key.
         """
         return v or None
+
+    @model_validator(mode="after")
+    def _chunks_fit_embedding_model(self) -> "Settings":
+        """Reject chunk sizes the embedding model would silently truncate."""
+        if self.chunk_max_tokens > self.embedding_max_tokens:
+            raise ValueError(
+                f"CHUNK_MAX_TOKENS ({self.chunk_max_tokens}) exceeds EMBEDDING_MAX_TOKENS "
+                f"({self.embedding_max_tokens}); longer chunks would be truncated when embedded"
+            )
+        return self
 
 
 # ---------------------------------------------------------------------------

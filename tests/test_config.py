@@ -37,6 +37,16 @@ class TestSettings:
             with pytest.raises(ValidationError):
                 Settings(_env_file=None)
 
+    def test_chunk_max_above_model_limit_is_rejected(self) -> None:
+        """Chunks longer than the embedding model reads would be silently truncated."""
+        with pytest.raises(ValidationError, match="EMBEDDING_MAX_TOKENS"):
+            Settings(
+                _env_file=None,
+                llm_api_key="sk-test",
+                chunk_max_tokens=600,
+                embedding_max_tokens=512,
+            )
+
     def test_blank_qdrant_api_key_becomes_none(self) -> None:
         """A blank QDRANT_API_KEY must normalise to None.
 

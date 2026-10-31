@@ -4,69 +4,122 @@ Splits overlong sections into sub-chunks with overlap; accumulates small
 sections until they reach the configured minimum. Every emitted Chunk carries
 complete ChunkMetadata (book, chapter, section, page range, source_path, hash).
 
+Sizes are counted with the embedding model's own tokenizer, not a generic one:
+the model silently truncates past EMBEDDING_MAX_TOKENS, and generic counts
+(e.g. tiktoken) undercount code- and symbol-heavy text by up to ~30%.
+
 This module is the Phase-1 milestone gate (M1): chunks must carry correct
 metadata validated on 3 structurally different books before Phase 2 begins.
 """
 
 import hashlib
 import time
+from functools import lru_cache
 
-import tiktoken
 from app.config import get_logger, get_settings
 from app.models import Chunk, ChunkMetadata
+from huggingface_hub import hf_hub_download
+from tokenizers import Tokenizer
 
 from pipeline.extractors.structure_parser import ParsedDocument, StructuredSection
 
 logger = get_logger(__name__)
 
-# Lazy singleton — initialized on first use to avoid side effects at import time
-_ENCODING: tiktoken.Encoding | None = None
+
+class ChunkTooLongError(ValueError):
+    """A chunk exceeds what the embedding model can read without truncation."""
 
 
-def _get_encoding() -> tiktoken.Encoding:
-    global _ENCODING
-    if _ENCODING is None:
-        _ENCODING = tiktoken.get_encoding("cl100k_base")
-    return _ENCODING
+@lru_cache(maxsize=4)
+def _load_tokenizer(model_name: str) -> Tokenizer:
+    """Load *model_name*'s fast tokenizer (downloaded once, then read from the HF cache)."""
+    tokenizer = Tokenizer.from_file(hf_hub_download(model_name, "tokenizer.json"))
+    # Counting must see the full length; a bundled truncation config would hide overflow.
+    tokenizer.no_truncation()
+    tokenizer.no_padding()
+    return tokenizer
+
+
+def _get_tokenizer() -> Tokenizer:
+    return _load_tokenizer(get_settings().embedding_model)
 
 
 def _count_tokens(text: str) -> int:
-    return len(_get_encoding().encode(text))
+    """Content tokens in *text* as the embedding model sees them (excluding [CLS]/[SEP])."""
+    return len(_get_tokenizer().encode(text, add_special_tokens=False).ids)
+
+
+def _special_token_count() -> int:
+    """Tokens the model adds around every input ([CLS] and [SEP] for bge)."""
+    return len(_get_tokenizer().encode("", add_special_tokens=True).ids)
 
 
 def _sha256(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
-def _split_by_tokens(text: str, max_tokens: int, overlap_tokens: int) -> list[str]:
-    """Split text into sub-chunks of at most max_tokens with token-level overlap.
+def _word_start(word_ids: list[int | None], lower: int, index: int) -> int:
+    """Move token *index* back to the first token of its word, staying above *lower*.
 
-    Overlap is applied by sliding the window back by overlap_tokens after each
-    chunk so context at boundaries is preserved across adjacent chunks.
+    Returns *index* unchanged if a single word fills the whole window, so the
+    split cuts mid-word instead of stalling.
+    """
+    j = index
+    while j > lower and word_ids[j] is not None and word_ids[j] == word_ids[j - 1]:
+        j -= 1
+    return j if j > lower else index
+
+
+def _split_by_tokens(text: str, max_tokens: int, overlap_tokens: int) -> list[str]:
+    """Split text into sub-chunks of at most max_tokens content tokens, with overlap.
+
+    Windows end on word boundaries and are sliced from the original string via
+    token offsets (decoding would lowercase and re-space the text). Because
+    bge's pre-tokenizer splits on whitespace and punctuation, a word-aligned
+    slice re-tokenizes to exactly the window's tokens.
 
     Args:
         text: Text to split.
-        max_tokens: Hard upper bound on tokens per sub-chunk.
-        overlap_tokens: Number of tokens to repeat at the start of the next chunk.
+        max_tokens: Hard upper bound on content tokens per sub-chunk.
+        overlap_tokens: Approximate tokens to repeat at the start of the next chunk.
 
     Returns:
         List of sub-chunk strings; always at least one element.
     """
-    enc = _get_encoding()
-    tokens = enc.encode(text)
-    if len(tokens) <= max_tokens:
+    encoding = _get_tokenizer().encode(text, add_special_tokens=False)
+    n = len(encoding.ids)
+    if n <= max_tokens:
         return [text]
 
+    offsets, word_ids = encoding.offsets, encoding.word_ids
     sub_chunks: list[str] = []
     start = 0
-    while start < len(tokens):
-        end = min(start + max_tokens, len(tokens))
-        sub_chunks.append(enc.decode(tokens[start:end]))
-        if end >= len(tokens):
+    while start < n:
+        end = min(start + max_tokens, n)
+        if end < n:
+            end = _word_start(word_ids, start, end)
+        sub_chunks.append(text[offsets[start][0] : offsets[end - 1][1]])
+        if end >= n:
             break
-        start = end - overlap_tokens  # slide back by overlap
+        next_start = end - overlap_tokens
+        start = _word_start(word_ids, start, next_start) if next_start > start else end
 
     return sub_chunks
+
+
+def _assert_fits_model(chunks: list[Chunk], limit: int) -> None:
+    """Fail loud if any chunk would be truncated by the embedding model.
+
+    Raises:
+        ChunkTooLongError: naming the first offending chunk's section and length.
+    """
+    encodings = _get_tokenizer().encode_batch([c.text for c in chunks], add_special_tokens=True)
+    for chunk, encoding in zip(chunks, encodings):
+        if len(encoding.ids) > limit:
+            raise ChunkTooLongError(
+                f"Chunk in '{chunk.metadata.section}' (p.{chunk.metadata.page_start}) has "
+                f"{len(encoding.ids)} model tokens; limit is {limit}"
+            )
 
 
 def _make_chunk(
@@ -106,6 +159,7 @@ def chunk_document(doc: ParsedDocument) -> list[Chunk]:
 
     Raises:
         ValueError: if doc.source_path or doc.book_title is empty.
+        ChunkTooLongError: if a chunk would exceed the embedding model's input limit.
     """
     if not doc.source_path:
         raise ValueError("doc.source_path must not be empty")
@@ -114,7 +168,8 @@ def chunk_document(doc: ParsedDocument) -> list[Chunk]:
 
     settings = get_settings()
     min_tokens = settings.chunk_min_tokens
-    max_tokens = settings.chunk_max_tokens
+    # Budget for content tokens: the model adds [CLS]/[SEP] to every input.
+    max_tokens = settings.chunk_max_tokens - _special_token_count()
     overlap_tokens = settings.chunk_overlap_tokens
 
     start_time = time.perf_counter()
@@ -176,6 +231,8 @@ def chunk_document(doc: ParsedDocument) -> list[Chunk]:
             sub = sub.strip()
             if sub:
                 chunks.append(_make_chunk(sub, buf_section, doc))
+
+    _assert_fits_model(chunks, settings.chunk_max_tokens)
 
     elapsed = time.perf_counter() - start_time
     logger.info(

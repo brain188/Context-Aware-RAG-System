@@ -17,7 +17,7 @@ Answers questions with **verifiable citations** down to book, chapter, section, 
 ## Architecture
 
 ```
-PDFs → extract → parse structure → preprocess → chunk → dedup → embed → Qdrant + BM25
+PDFs → extract → parse structure → preprocess → chunk → dedup → embed → Qdrant (dense + BM25 sparse)
                                                                             ↓
                             query → hybrid retrieve → rerank → generate → cited answer
 ```

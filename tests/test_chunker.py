@@ -1,18 +1,36 @@
 """Tests for pipeline/chunker.py — chunk boundaries, metadata, size bounds, edge cases.
 
-All tests use synthetic ParsedDocument / StructuredSection data; no PDF file
-is required. Settings are controlled via environment-variable patching.
+Tests use synthetic ParsedDocument / StructuredSection data, except the
+real-book limit check, which runs only when PDFs are present in books/.
+Token counts use the embedding model's tokenizer (downloaded once from the HF
+Hub). Settings are controlled via environment-variable patching.
 """
 
 import os
+from functools import lru_cache
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+from huggingface_hub import hf_hub_download
+from tokenizers import Tokenizer
 
 from app.config import get_settings
-from pipeline.extractors.structure_parser import ParsedDocument, StructuredSection
-from pipeline.chunker import _count_tokens, _sha256, _split_by_tokens, chunk_document
-from pipeline.preprocessor import clean_text
+from pipeline.chunker import (
+    ChunkTooLongError,
+    _assert_fits_model,
+    _count_tokens,
+    _sha256,
+    _split_by_tokens,
+    chunk_document,
+)
+from pipeline.extractors.pdf_extractor import extract_pdf
+from pipeline.extractors.structure_parser import (
+    ParsedDocument,
+    StructuredSection,
+    parse_structure,
+)
+from pipeline.preprocessor import clean_text, preprocess_document
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -284,3 +302,68 @@ class TestCleanText:
 
     def test_strips_leading_trailing_whitespace(self) -> None:
         assert clean_text("  hello  ") == "hello"
+
+
+# ---------------------------------------------------------------------------
+# Embedding-model input limit — chunks must never be silently truncated
+# ---------------------------------------------------------------------------
+
+_BOOKS_DIR = Path(__file__).resolve().parent.parent / "books"
+
+# Code, math symbols and URLs tokenize far denser in bge's WordPiece than in tiktoken.
+_DENSE_TEXT = (
+    "def forward(self, x: torch.Tensor) -> torch.Tensor:\n"
+    "    return F.softmax(self.W @ x + self.b, dim=-1)  # σ(Wx+b)\n"
+    "KL(q‖p) = Σ_i q_i log(q_i / p_i) ≥ 0, with ∇_θ L(θ) = E_q[∇ log p(x|θ)].\n"
+    "See https://docs.djangoproject.com/en/5.0/ref/models/querysets/#QuerySet.filter.\n"
+) * 60
+
+
+@lru_cache(maxsize=4)
+def _reference_tokenizer(model_name: str) -> Tokenizer:
+    """The embedding model's tokenizer, loaded independently of pipeline.chunker."""
+    tokenizer = Tokenizer.from_file(hf_hub_download(model_name, "tokenizer.json"))
+    tokenizer.no_truncation()
+    return tokenizer
+
+
+def _model_token_count(text: str) -> int:
+    """Length the embedding model actually sees, including [CLS]/[SEP]."""
+    tokenizer = _reference_tokenizer(get_settings().embedding_model)
+    return len(tokenizer.encode(text, add_special_tokens=True).ids)
+
+
+class TestEmbeddingModelLimit:
+    def test_dense_text_chunks_fit_model_limit(self) -> None:
+        doc = _make_doc([("Ch 1", "1.1 Code", _DENSE_TEXT, 1, 9)])
+        with _patch_settings(chunk_min_tokens=100, chunk_max_tokens=512, chunk_overlap_tokens=50):
+            chunks = chunk_document(doc)
+            limit = get_settings().chunk_max_tokens
+            lengths = [_model_token_count(c.text) for c in chunks]
+        assert len(chunks) > 1
+        assert max(lengths) <= limit, f"chunk of {max(lengths)} tokens would be truncated"
+
+    def test_split_chunks_are_verbatim_slices_of_the_source(self) -> None:
+        # Decoding bge tokens would lowercase and re-space; offsets keep the original text.
+        with _patch_settings():
+            chunks = _split_by_tokens(_DENSE_TEXT, max_tokens=120, overlap_tokens=10)
+        assert len(chunks) > 1
+        assert all(c in _DENSE_TEXT for c in chunks)
+        assert any(c != c.lower() for c in chunks)
+
+    def test_oversized_chunk_fails_loud(self) -> None:
+        doc = _make_doc([("Ch 1", "1.1", " ".join(["word"] * 80), 1, 1)])
+        with _patch_settings(chunk_min_tokens=50, chunk_max_tokens=200):
+            (chunk,) = chunk_document(doc)
+            with pytest.raises(ChunkTooLongError, match="limit is 10"):
+                _assert_fits_model([chunk], limit=10)
+
+    @pytest.mark.skipif(not list(_BOOKS_DIR.glob("*.pdf")), reason="no local PDFs in books/")
+    def test_real_books_fit_model_limit(self) -> None:
+        with _patch_settings(chunk_min_tokens=100, chunk_max_tokens=512, chunk_overlap_tokens=50):
+            limit = get_settings().chunk_max_tokens
+            for pdf in sorted(_BOOKS_DIR.glob("*.pdf")):
+                parsed = parse_structure(extract_pdf(pdf), pdf.stem)
+                chunks = chunk_document(preprocess_document(parsed))
+                worst = max(_model_token_count(c.text) for c in chunks)
+                assert worst <= limit, f"{pdf.name}: chunk of {worst} tokens exceeds {limit}"

@@ -11,7 +11,7 @@ marker-pdf       # better structure/table/equation preservation (slower)
 python-dotenv
 
 # Chunking / text processing
-tiktoken          # token counting for chunk sizing
+tokenizers        # chunk sizing with the embedding model's own tokenizer
 
 # Embeddings
 sentence-transformers           # bge-large / gte-large
@@ -19,7 +19,6 @@ FlagEmbedding                   # bge-reranker cross-encoder
 
 # Retrieval
 qdrant-client
-rank-bm25               # keyword/BM25 side of hybrid search
 redis
 
 # LLM

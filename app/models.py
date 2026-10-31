@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from uuid import uuid4
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 # ---------------------------------------------------------------------------
 # Pipeline / ingestion contract (shared with pipeline/)
@@ -35,6 +35,42 @@ class Chunk(BaseModel):
     text: str
     metadata: ChunkMetadata
     embedding: list[float] | None = None
+
+
+class ScoredChunk(BaseModel):
+    """A retrieved chunk with the score assigned by the stage that produced it.
+
+    Hybrid retrieval scores are RRF scores; reranker scores are cross-encoder
+    relevance. Higher is better in both cases, but the scales are not comparable.
+    """
+
+    chunk: Chunk
+    score: float
+
+
+# ---------------------------------------------------------------------------
+# Retrieval scoping
+# ---------------------------------------------------------------------------
+
+
+def _check_page_range(page_from: int | None, page_to: int | None) -> None:
+    """Raise ValueError when both bounds are set and inverted."""
+    if page_from is not None and page_to is not None and page_from > page_to:
+        raise ValueError(f"page_from ({page_from}) must be <= page_to ({page_to})")
+
+
+class RetrievalFilter(BaseModel):
+    """Metadata constraints that scope retrieval; all fields that are set must match (AND)."""
+
+    books: list[str] | None = Field(None, min_length=1)  # match any of these book titles
+    chapter: str | None = Field(None, min_length=1)  # exact chapter heading as ingested
+    page_from: int | None = Field(None, ge=1)  # keep chunks overlapping [page_from, page_to]
+    page_to: int | None = Field(None, ge=1)
+
+    @model_validator(mode="after")
+    def _page_range_ordered(self) -> RetrievalFilter:
+        _check_page_range(self.page_from, self.page_to)
+        return self
 
 
 # ---------------------------------------------------------------------------
@@ -66,7 +102,14 @@ class QueryRequest(BaseModel):
     session_id: str | None = None
     book_filter: list[str] | None = None  # restrict search to these books
     chapter_filter: str | None = None
+    page_from: int | None = Field(None, ge=1)
+    page_to: int | None = Field(None, ge=1)
     top_k: int | None = Field(None, ge=1, le=50)
+
+    @model_validator(mode="after")
+    def _page_range_ordered(self) -> QueryRequest:
+        _check_page_range(self.page_from, self.page_to)
+        return self
 
 
 class StreamToken(BaseModel):
