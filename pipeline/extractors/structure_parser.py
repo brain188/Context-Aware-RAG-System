@@ -26,6 +26,9 @@ class StructuredSection:
     page_start: int
     page_end: int
     text: str
+    # (offset into text, page) where each page's text begins, in order. Lets the
+    # chunker give each sub-chunk of a long section its own pages. Empty = unknown.
+    page_offsets: list[tuple[int, int]] = field(default_factory=list)
 
 
 @dataclass
@@ -48,12 +51,19 @@ class ParsedDocument:
 def _section(chapter: str, section: str, lines: list[PageLine]) -> StructuredSection | None:
     """Join *lines* into a section (blank line between text blocks); None if no text."""
     parts: list[str] = []
-    for k, (_, line) in enumerate(lines):
+    page_offsets: list[tuple[int, int]] = []
+    position = 0
+    for k, (page, line) in enumerate(lines):
         if k:
-            parts.append("\n\n" if line.block_start else "\n")
+            separator = "\n\n" if line.block_start else "\n"
+            parts.append(separator)
+            position += len(separator)
+        if not page_offsets or page_offsets[-1][1] != page:
+            page_offsets.append((position, page))
         parts.append(line.text)
-    text = "".join(parts).strip()
-    if not text:
+        position += len(line.text)
+    text = "".join(parts)  # line texts are stripped, so offsets need no adjusting
+    if not text.strip():
         return None
     return StructuredSection(
         chapter=chapter,
@@ -61,6 +71,7 @@ def _section(chapter: str, section: str, lines: list[PageLine]) -> StructuredSec
         page_start=lines[0][0],
         page_end=lines[-1][0],
         text=text,
+        page_offsets=page_offsets,
     )
 
 

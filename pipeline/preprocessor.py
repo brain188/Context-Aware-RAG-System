@@ -7,6 +7,7 @@ normalization preserves composed characters without destroying them).
 
 import re
 import unicodedata
+from dataclasses import replace
 
 from app.config import get_logger
 
@@ -51,6 +52,31 @@ def clean_text(text: str) -> str:
     return text.strip()
 
 
+def _clean_section(section: StructuredSection) -> StructuredSection:
+    """Clean one section, keeping its page offsets aligned with the cleaned text.
+
+    Each page's slice is cleaned on its own (so a word hyphenated across a page
+    break stays split), then the slices are rejoined with a line break.
+    """
+    if not section.page_offsets:
+        return replace(section, text=clean_text(section.text))
+    ends = [offset for offset, _ in section.page_offsets[1:]] + [len(section.text)]
+    pieces: list[str] = []
+    offsets: list[tuple[int, int]] = []
+    position = 0
+    for (start, page), end in zip(section.page_offsets, ends):
+        piece = clean_text(section.text[start:end])
+        if not piece:
+            continue  # e.g. a page holding only its page number
+        if pieces:
+            pieces.append("\n")
+            position += 1
+        offsets.append((position, page))
+        pieces.append(piece)
+        position += len(piece)
+    return replace(section, text="".join(pieces), page_offsets=offsets)
+
+
 def preprocess_document(doc: ParsedDocument) -> ParsedDocument:
     """Apply clean_text to every section in a ParsedDocument.
 
@@ -63,16 +89,7 @@ def preprocess_document(doc: ParsedDocument) -> ParsedDocument:
     Returns:
         ParsedDocument with identical structure but cleaned text in every section.
     """
-    cleaned_sections = [
-        StructuredSection(
-            chapter=s.chapter,
-            section=s.section,
-            page_start=s.page_start,
-            page_end=s.page_end,
-            text=clean_text(s.text),
-        )
-        for s in doc.sections
-    ]
+    cleaned_sections = [_clean_section(s) for s in doc.sections]
 
     logger.info("Preprocessed '%s': %d sections cleaned.", doc.book_title, len(cleaned_sections))
     return ParsedDocument(

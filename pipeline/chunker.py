@@ -14,6 +14,7 @@ metadata validated on 3 structurally different books before Phase 2 begins.
 
 import hashlib
 import time
+from bisect import bisect_right
 from dataclasses import replace
 from functools import lru_cache
 
@@ -71,8 +72,8 @@ def _word_start(word_ids: list[int | None], lower: int, index: int) -> int:
     return j if j > lower else index
 
 
-def _split_by_tokens(text: str, max_tokens: int, overlap_tokens: int) -> list[str]:
-    """Split text into sub-chunks of at most max_tokens content tokens, with overlap.
+def _split_spans(text: str, max_tokens: int, overlap_tokens: int) -> list[tuple[int, int]]:
+    """Split text into windows of at most max_tokens content tokens, with overlap.
 
     Windows end on word boundaries and are sliced from the original string via
     token offsets (decoding would lowercase and re-space the text). Because
@@ -85,27 +86,44 @@ def _split_by_tokens(text: str, max_tokens: int, overlap_tokens: int) -> list[st
         overlap_tokens: Approximate tokens to repeat at the start of the next chunk.
 
     Returns:
-        List of sub-chunk strings; always at least one element.
+        (start, end) character spans of the windows in *text*; always at least one.
     """
     encoding = _get_tokenizer().encode(text, add_special_tokens=False)
     n = len(encoding.ids)
     if n <= max_tokens:
-        return [text]
+        return [(0, len(text))]
 
     offsets, word_ids = encoding.offsets, encoding.word_ids
-    sub_chunks: list[str] = []
+    spans: list[tuple[int, int]] = []
     start = 0
     while start < n:
         end = min(start + max_tokens, n)
         if end < n:
             end = _word_start(word_ids, start, end)
-        sub_chunks.append(text[offsets[start][0] : offsets[end - 1][1]])
+        spans.append((offsets[start][0], offsets[end - 1][1]))
         if end >= n:
             break
         next_start = end - overlap_tokens
         start = _word_start(word_ids, start, next_start) if next_start > start else end
 
-    return sub_chunks
+    return spans
+
+
+def _split_by_tokens(text: str, max_tokens: int, overlap_tokens: int) -> list[str]:
+    """Split text into sub-chunk strings; see _split_spans."""
+    return [text[a:b] for a, b in _split_spans(text, max_tokens, overlap_tokens)]
+
+
+def _pages_of(section: StructuredSection, start: int, end: int) -> tuple[int, int]:
+    """Pages that section.text[start:end] sits on; the section's range if offsets are unknown."""
+    if not section.page_offsets or end <= start:
+        return section.page_start, section.page_end
+    starts = [offset for offset, _ in section.page_offsets]
+
+    def page_at(position: int) -> int:
+        return section.page_offsets[max(bisect_right(starts, position) - 1, 0)][1]
+
+    return page_at(start), page_at(end - 1)
 
 
 def _assert_fits_model(chunks: list[Chunk], limit: int) -> None:
@@ -127,14 +145,16 @@ def _make_chunk(
     text: str,
     section: StructuredSection,
     doc: ParsedDocument,
+    pages: tuple[int, int] | None = None,
 ) -> Chunk:
-    """Build a single Chunk with complete ChunkMetadata."""
+    """Build a single Chunk with complete ChunkMetadata (pages default to the section's)."""
+    page_start, page_end = pages or (section.page_start, section.page_end)
     metadata = ChunkMetadata(
         book=doc.book_title,
         chapter=section.chapter,
         section=section.section,
-        page_start=section.page_start,
-        page_end=section.page_end,
+        page_start=page_start,
+        page_end=page_end,
         source_path=doc.source_path,
         content_hash=_sha256(text),
     )
@@ -147,7 +167,7 @@ def chunk_document(doc: ParsedDocument) -> list[Chunk]:
     Strategy:
     - Sections within [min_tokens, max_tokens] → emitted as a single chunk.
     - Sections above max_tokens → split with overlap, each sub-chunk emitted
-      separately.
+      separately with the pages its own text sits on.
     - Sections below min_tokens → accumulated into a buffer and merged with
       subsequent small sections of the same chapter until the buffer reaches
       min_tokens, then emitted with the pages of every merged section.
@@ -195,6 +215,7 @@ def chunk_document(doc: ParsedDocument) -> list[Chunk]:
         text = section.text.strip()
         if not text:
             continue
+        lead = len(section.text) - len(section.text.lstrip())  # text[i] is section.text[lead + i]
 
         if buf_section is not None and buf_section.chapter != section.chapter:
             flush_buffer()  # a chunk never straddles two chapters
@@ -204,15 +225,20 @@ def chunk_document(doc: ParsedDocument) -> list[Chunk]:
         if count > max_tokens:
             # Flush any buffered small section first, then split the overlong one.
             flush_buffer()
-            for sub in _split_by_tokens(text, max_tokens, overlap_tokens):
-                sub = sub.strip()
+            for start, end in _split_spans(text, max_tokens, overlap_tokens):
+                window = text[start:end]
+                sub = window.strip()
                 if sub:  # keep a short tail: dropping it would lose the section's last words
-                    chunks.append(_make_chunk(sub, section, doc))
+                    first = lead + start + len(window) - len(window.lstrip())
+                    pages = _pages_of(section, first, first + len(sub))
+                    chunks.append(_make_chunk(sub, section, doc, pages))
 
         elif count >= min_tokens:
             # Section is within bounds — flush buffer then emit
             flush_buffer()
-            chunks.append(_make_chunk(text, section, doc))
+            chunks.append(
+                _make_chunk(text, section, doc, _pages_of(section, lead, lead + len(text)))
+            )
 
         else:
             # Too small: accumulate. The merged chunk keeps the first section's labels
@@ -222,7 +248,9 @@ def chunk_document(doc: ParsedDocument) -> list[Chunk]:
             else:
                 buf_text += "\n\n" + text
                 buf_section = replace(
-                    buf_section, page_end=max(buf_section.page_end, section.page_end)
+                    buf_section,
+                    page_end=max(buf_section.page_end, section.page_end),
+                    page_offsets=[],  # offsets index one section's text, not the merged buffer
                 )
             if _count_tokens(buf_text) >= min_tokens:
                 flush_buffer()
