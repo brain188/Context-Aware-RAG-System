@@ -14,6 +14,7 @@ metadata validated on 3 structurally different books before Phase 2 begins.
 
 import hashlib
 import time
+from dataclasses import replace
 from functools import lru_cache
 
 from app.config import get_logger, get_settings
@@ -148,7 +149,8 @@ def chunk_document(doc: ParsedDocument) -> list[Chunk]:
     - Sections above max_tokens → split with overlap, each sub-chunk emitted
       separately.
     - Sections below min_tokens → accumulated into a buffer and merged with
-      subsequent small sections until the buffer reaches min_tokens, then emitted.
+      subsequent small sections of the same chapter until the buffer reaches
+      min_tokens, then emitted with the pages of every merged section.
 
     Args:
         doc: Preprocessed, structured document.
@@ -194,15 +196,17 @@ def chunk_document(doc: ParsedDocument) -> list[Chunk]:
         if not text:
             continue
 
+        if buf_section is not None and buf_section.chapter != section.chapter:
+            flush_buffer()  # a chunk never straddles two chapters
+
         count = _count_tokens(text)
 
         if count > max_tokens:
-            # Flush any buffered small section first
+            # Flush any buffered small section first, then split the overlong one.
             flush_buffer()
-            # Split overlong section into sub-chunks
             for sub in _split_by_tokens(text, max_tokens, overlap_tokens):
                 sub = sub.strip()
-                if sub and _count_tokens(sub) >= min_tokens:
+                if sub:  # keep a short tail: dropping it would lose the section's last words
                     chunks.append(_make_chunk(sub, section, doc))
 
         elif count >= min_tokens:
@@ -211,26 +215,19 @@ def chunk_document(doc: ParsedDocument) -> list[Chunk]:
             chunks.append(_make_chunk(text, section, doc))
 
         else:
-            # Too small: accumulate into buffer
-            if buf_text:
-                combined = buf_text + "\n\n" + text
-                if _count_tokens(combined) >= min_tokens:
-                    # Buffer now meets the minimum — flush combined
-                    buf_text = combined
-                    flush_buffer()
-                else:
-                    buf_text = combined
-                    # Keep buf_section pointing to the first section for metadata
+            # Too small: accumulate. The merged chunk keeps the first section's labels
+            # but its page range covers every merged section.
+            if buf_section is None:
+                buf_text, buf_section = text, section
             else:
-                buf_text = text
-                buf_section = section
+                buf_text += "\n\n" + text
+                buf_section = replace(
+                    buf_section, page_end=max(buf_section.page_end, section.page_end)
+                )
+            if _count_tokens(buf_text) >= min_tokens:
+                flush_buffer()
 
-    # Final flush: emit whatever remains in the buffer
-    if buf_text.strip() and buf_section is not None:
-        for sub in _split_by_tokens(buf_text.strip(), max_tokens, overlap_tokens):
-            sub = sub.strip()
-            if sub:
-                chunks.append(_make_chunk(sub, buf_section, doc))
+    flush_buffer()
 
     _assert_fits_model(chunks, settings.chunk_max_tokens)
 

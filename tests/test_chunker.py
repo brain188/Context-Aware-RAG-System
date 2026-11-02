@@ -216,6 +216,31 @@ class TestChunkSizeBounds:
         # Three tiny sections should collapse to fewer chunks
         assert len(chunks) < 3
 
+    def test_merged_chunk_spans_the_pages_of_every_merged_section(self) -> None:
+        tiny = " ".join(["word"] * 20)
+        doc = _make_doc(
+            [("Ch 1", "1.1", tiny, 1, 2), ("Ch 1", "1.2", tiny, 3, 4), ("Ch 1", "1.3", tiny, 5, 6)]
+        )
+        with _patch_settings(chunk_min_tokens=50, chunk_max_tokens=200, chunk_overlap_tokens=10):
+            (chunk,) = chunk_document(doc)
+        assert (chunk.metadata.section, chunk.metadata.page_start) == ("1.1", 1)
+        assert chunk.metadata.page_end == 6
+
+    def test_small_sections_do_not_merge_across_chapters(self) -> None:
+        tiny = " ".join(["word"] * 20)
+        doc = _make_doc([("Ch 1", "1.9", tiny, 1, 1), ("Ch 2", "2.1", tiny, 2, 2)])
+        with _patch_settings(chunk_min_tokens=50, chunk_max_tokens=200, chunk_overlap_tokens=10):
+            chunks = chunk_document(doc)
+        assert [c.metadata.chapter for c in chunks] == ["Ch 1", "Ch 2"]
+
+    def test_split_section_keeps_its_short_tail(self) -> None:
+        """The last words of an overlong section must survive even if the tail is small."""
+        text = " ".join(["word"] * 195 + ["omega"])
+        doc = _make_doc([("Ch 1", "1.1", text, 1, 3)])
+        with _patch_settings(chunk_min_tokens=50, chunk_max_tokens=100, chunk_overlap_tokens=10):
+            chunks = chunk_document(doc)
+        assert chunks[-1].text.endswith("omega")
+
     def test_no_empty_chunks_emitted(self) -> None:
         """chunk_document must never emit a chunk with empty text."""
         sections = [
