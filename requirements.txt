@@ -24,9 +24,7 @@ redis
 # LLM
 anthropic             # Claude API client
 
-# Evaluation
-ragas
-datasets
+# Evaluation: evaluation/ needs nothing extra (the optional LLM judge uses anthropic)
 
 # Frontend (v1)
 streamlit

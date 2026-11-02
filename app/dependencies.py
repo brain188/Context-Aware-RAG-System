@@ -53,8 +53,11 @@ class Services:
         self.query_log.close()
 
 
-def build_services(settings: Settings) -> Services:
-    """Wire the production services from settings (no network calls yet)."""
+def build_services(settings: Settings, query_log: QueryLogSink | None = None) -> Services:
+    """Wire the production services from settings (no network calls yet).
+
+    *query_log* replaces the JSONL query log (the eval harness captures records).
+    """
     qdrant = AsyncQdrantClient(
         url=settings.qdrant_url,
         api_key=settings.qdrant_api_key,
@@ -68,7 +71,8 @@ def build_services(settings: Settings) -> Services:
 
     catalog = LibraryCatalog(qdrant, settings)
     cache = SemanticCache(redis, settings)
-    query_log = JsonlQueryLog(settings)
+    if query_log is None:
+        query_log = JsonlQueryLog(settings)
     retrieval = RetrievalStage(
         HybridRetriever(qdrant, embedder, BM25SparseEncoder(settings), settings),
         Reranker(scorer, settings),

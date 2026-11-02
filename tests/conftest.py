@@ -29,7 +29,7 @@ from app.services.generator import AnswerGenerator
 from app.services.index_version import IndexVersionProvider
 from app.services.ingest_jobs import IngestJobManager
 from app.services.library import LibraryCatalog
-from app.services.query_logger import JsonlQueryLog
+from app.services.query_logger import JsonlQueryLog, QueryLogSink
 from app.services.rag_pipeline import RagPipeline
 from app.services.retrieval_stage import RetrievalStage
 from app.services.semantic_cache import SemanticCache
@@ -179,13 +179,15 @@ async def build_test_services(
     llm: FakeLLM,
     redis: FakeAsyncRedis,
     ingest_runner: Callable[[Path, str], dict[str, Any]] | None = None,
+    query_log: QueryLogSink | None = None,
 ) -> Services:
     """Wire the real services around the fakes, the same way build_services() does."""
     qdrant = await seeded_qdrant(settings)
     embedder, scorer = FakeEmbedder(), FakeScorer()
     catalog = LibraryCatalog(qdrant, settings)
     cache = SemanticCache(redis, settings)
-    query_log = JsonlQueryLog(settings)
+    if query_log is None:
+        query_log = JsonlQueryLog(settings)
     retrieval = RetrievalStage(
         HybridRetriever(qdrant, embedder, BM25SparseEncoder(settings), settings),
         Reranker(scorer, settings),

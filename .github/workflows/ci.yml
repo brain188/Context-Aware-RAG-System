@@ -31,3 +31,11 @@ jobs:
         env:
           LLM_API_KEY: test-key-for-ci
         run: pytest -q
+
+      # CI has no books, index, or API key, so it cannot run the eval itself. Reports
+      # are run locally and committed; this fails if the newest one regressed against
+      # the one before it (and passes while fewer than two exist).
+      - name: Eval regression gate (committed reports)
+        env:
+          LLM_API_KEY: test-key-for-ci
+        run: python -m evaluation.compare --latest
