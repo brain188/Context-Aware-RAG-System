@@ -182,3 +182,36 @@ class TestUpsertAndDelete:
 
         records, _ = client.scroll(settings.qdrant_collection, with_payload=True)
         assert [r.payload["text"] for r in records] == ["other"]
+
+    def test_upsert_sends_small_batches_and_returns_the_ids(self) -> None:
+        settings = _vs_settings(qdrant_upsert_batch_size=2)
+        client = QdrantClient(location=":memory:")
+        ensure_collection(client, settings)
+        calls: list[dict] = []
+        real_upload = client.upload_points
+
+        def recording_upload(**kwargs):
+            calls.append(kwargs)
+            return real_upload(**kwargs)
+
+        client.upload_points = recording_upload
+        chunks = [_embedded_chunk(f"c{i}") for i in range(5)]
+        written = upsert_chunks(client, chunks, settings)
+
+        assert sorted(written) == sorted(c.chunk_id for c in chunks)
+        assert client.count(settings.qdrant_collection).count == 5
+        (call,) = calls
+        assert (call["batch_size"], call["wait"]) == (2, True) and call["max_retries"] > 0
+
+    def test_old_chunks_are_removed_only_after_the_new_ones_are_stored(self) -> None:
+        settings = _vs_settings()
+        client = QdrantClient(location=":memory:")
+        ensure_collection(client, settings)
+        upsert_chunks(client, [_embedded_chunk("a v1", "/books/a.pdf")], settings)
+        upsert_chunks(client, [_embedded_chunk("b", "/books/b.pdf")], settings)
+
+        written = upsert_chunks(client, [_embedded_chunk("a v2", "/books/a.pdf")], settings)
+        delete_book_chunks(client, "/books/a.pdf", "/books/a.pdf", settings, keep_ids=written)
+
+        records, _ = client.scroll(settings.qdrant_collection, with_payload=True)
+        assert sorted(r.payload["text"] for r in records) == ["a v2", "b"]

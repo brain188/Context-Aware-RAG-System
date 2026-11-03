@@ -4,8 +4,9 @@ Orchestrates the full flow for one or more PDF books:
     raw PDFs → extract → parse structure → preprocess → chunk →
     deduplicate → embed → upsert into Qdrant (dense + BM25 sparse vectors).
 
-Idempotent per book: re-ingesting a book deletes its existing Qdrant points
-(keyed on source_path) before re-inserting, so chunks are never duplicated.
+Idempotent per book: re-ingesting a book upserts the new chunks, then deletes
+the book's older points (keyed on source_path or title), so chunks are never
+duplicated and a failed upload leaves the previous version queryable.
 
 CLI usage (run from the project root):
     python -m pipeline.ingest --path /books/prml.pdf --title "PRML"
@@ -78,8 +79,9 @@ def ingest_book(pdf_path: str | Path, book_title: str) -> dict:
 
     chunks = embed_chunks(chunks)
 
-    delete_book_chunks(client, str(pdf_path), book_title, settings)
-    upsert_chunks(client, chunks, settings)
+    # New chunks first, then drop the old ones: a failed upload keeps the previous version.
+    written = upsert_chunks(client, chunks, settings)
+    delete_book_chunks(client, str(pdf_path), book_title, settings, keep_ids=written)
 
     elapsed = time.perf_counter() - start
     logger.info(

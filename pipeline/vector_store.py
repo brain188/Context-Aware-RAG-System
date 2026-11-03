@@ -15,6 +15,7 @@ from qdrant_client.models import (
     Distance,
     FieldCondition,
     Filter,
+    HasIdCondition,
     MatchValue,
     Modifier,
     PayloadSchemaType,
@@ -126,13 +127,18 @@ def _ensure_payload_indexes(client: QdrantClient, collection: str) -> None:
 
 
 def delete_book_chunks(
-    client: QdrantClient, source_path: str, book_title: str, settings: Settings
+    client: QdrantClient,
+    source_path: str,
+    book_title: str,
+    settings: Settings,
+    keep_ids: list[str] | None = None,
 ) -> None:
-    """Delete all points for this book (enables idempotent re-ingest).
+    """Delete this book's points, except *keep_ids* (enables idempotent re-ingest).
 
     Matches the file *or* the title, so a book ingested earlier under another
     path spelling (e.g. relative before paths were made absolute) is replaced,
-    not duplicated.
+    not duplicated. Ingest upserts the new chunks first and passes their ids
+    here, so a failed upload leaves the previous version in place.
     """
     client.delete(
         collection_name=settings.qdrant_collection,
@@ -140,7 +146,8 @@ def delete_book_chunks(
             should=[
                 FieldCondition(key="source_path", match=MatchValue(value=source_path)),
                 FieldCondition(key="book", match=MatchValue(value=book_title)),
-            ]
+            ],
+            must_not=[HasIdCondition(has_id=keep_ids)] if keep_ids else None,
         ),
     )
     logger.info(
@@ -174,14 +181,27 @@ def build_points(
     return points
 
 
-def upsert_chunks(client: QdrantClient, chunks: list[Chunk], settings: Settings) -> int:
-    """Upsert embedded chunks; return the number of points written."""
+def upsert_chunks(client: QdrantClient, chunks: list[Chunk], settings: Settings) -> list[str]:
+    """Upsert embedded chunks in batches; return the ids of the points written.
+
+    One request for a whole book is several MB and times out on a slow uplink to
+    a hosted Qdrant, so points go up in small batches, each retried on failure.
+    """
     points = build_points(chunks, BM25SparseEncoder(settings), settings)
     if not points:
         logger.warning("No points to upsert — all chunks are missing embeddings.")
-        return 0
-    client.upsert(collection_name=settings.qdrant_collection, points=points)
-    logger.info(
-        "Upserted %d points into Qdrant collection '%s'.", len(points), settings.qdrant_collection
+        return []
+    client.upload_points(
+        collection_name=settings.qdrant_collection,
+        points=points,
+        batch_size=settings.qdrant_upsert_batch_size,
+        max_retries=3,
+        wait=True,
     )
-    return len(points)
+    logger.info(
+        "Upserted %d points into Qdrant collection '%s' (batches of %d).",
+        len(points),
+        settings.qdrant_collection,
+        settings.qdrant_upsert_batch_size,
+    )
+    return [str(point.id) for point in points]

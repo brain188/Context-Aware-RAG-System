@@ -45,6 +45,9 @@ class Settings(BaseSettings):
     # Client default is 5s — too tight for collection creation on a cold server
     # and for large upsert batches.
     qdrant_timeout_seconds: int = 60
+    # Points per upsert request. Each point is ~20 KB (768 floats as JSON + text), so
+    # small batches keep each request well inside the timeout on a slow uplink.
+    qdrant_upsert_batch_size: int = 16
     # Named vectors in the collection; pipeline writes and app queries both.
     # Changing either requires recreating the collection and re-ingesting.
     qdrant_dense_vector_name: str = "dense"
