@@ -233,7 +233,9 @@ class TestSemanticCachePath:
         assert second.citations == first.citations
         assert tokens == [second.text]
         assert llm.calls.count("answer") == 1
-        assert _log_records(services)[1]["cache_hit"] is True
+        records = _log_records(services)
+        assert records[1]["cache_hit"] is True and records[1]["cache_match"] == "exact"
+        assert records[0]["cache_match"] is None  # nothing cached yet
 
     @pytest.mark.asyncio
     async def test_a_filtered_variant_is_not_served_from_cache(
@@ -249,6 +251,23 @@ class TestSemanticCachePath:
         await _ask(services, "How do transformers use attention?")
         _, again = await _ask(services, "How do transformers use attention?")
         assert not again.cache_hit
+
+    @pytest.mark.asyncio
+    async def test_answers_degraded_by_provider_errors_are_not_cached(
+        self, services: Services, llm: FakeLLM
+    ) -> None:
+        # An unusable grader reply (initial grade + the rewrite retry) degrades to ambiguous.
+        llm.grades = ["not json", "not json", '{"grade": "correct", "reason": "direct match"}']
+        _, degraded = await _ask(services, "What is the KL divergence?")
+        assert degraded.status == "low_confidence"
+        llm.fail_stream = True
+        with pytest.raises(LLMError):
+            await _ask(services, "What is the KL divergence?")
+        llm.fail_stream = False
+        _, fresh = await _ask(services, "What is the KL divergence?")
+        _, repeat = await _ask(services, "What is the KL divergence?")
+        assert not fresh.cache_hit and fresh.status == "answered"
+        assert repeat.cache_hit
 
 
 class TestConversation:

@@ -1,30 +1,46 @@
-"""Semantic answer cache in Redis.
+"""Semantic answer cache: Qdrant finds the nearest cached question, Redis holds the answer.
 
-Entries are grouped into namespaces keyed by index version and retrieval
-scope (filters), so a re-ingest, a prompt/model change, or a different book
-filter can never serve an out-of-date or out-of-scope answer. Within a
-namespace, a lookup compares the query embedding with every cached query
-embedding (stored as float32 bytes) and hits at cosine >= the threshold.
+Each cached entry is one point in a small Qdrant collection (the standalone
+question's embedding, plus its scope and creation time) and one Redis key
+holding the answer with a TTL. A lookup asks Qdrant for the single nearest
+point *within the request's scope*. A point at or above
+SEMANTIC_CACHE_THRESHOLD whose answer is still in Redis is a candidate; it
+hits when it is a near-exact repeat or the CacheMatcher's fast-model check
+confirms that one answer serves both questions (similarity alone cannot tell
+"field-level" from "form-level validation").
 
-Redis failures degrade to a cache miss (WARNING), never a failed query.
+The scope is the index version plus the retrieval filters. The index version
+already fingerprints the prompt version, the generation provider and model,
+the embedder, and the collection's point count (services/index_version.py),
+so a prompt bump, a model change, a re-ingest, or a different book filter is
+always a miss.
+
+Qdrant or Redis failures degrade to a cache miss (WARNING), never a failed query.
 """
 
+import asyncio
 import hashlib
 import time
 import uuid
 
-import numpy as np
 from pydantic import BaseModel, ValidationError
+from qdrant_client import AsyncQdrantClient, models
+from qdrant_client.http.exceptions import ResponseHandlingException, UnexpectedResponse
 from redis.asyncio import Redis
 from redis.exceptions import RedisError
 
 from app.config import Settings, get_logger
 from app.models import Citation, RetrievalFilter
+from app.services.cache_matcher import CacheMatcher, MatchKind
 
 logger = get_logger(__name__)
 
-_KEY_PREFIX = "rag:cache:"
-_ID_BYTES = 16  # uuid4 bytes prefixed to each stored vector
+_ANSWER_PREFIX = "rag:cache:answer:"
+_SCOPE = "scope"
+_CREATED_AT = "created_at"
+
+# What a cache backend can raise; every one of them means "treat as a miss".
+_BACKEND_ERRORS = (RedisError, UnexpectedResponse, ResponseHandlingException)
 
 
 class CachedAnswer(BaseModel):
@@ -41,61 +57,99 @@ class CacheLookup(BaseModel):
 
     answer: CachedAnswer | None
     similarity: float | None
+    match: MatchKind | None = None  # set when a candidate cleared the threshold
 
 
-def _scope_hash(filters: RetrievalFilter | None) -> str:
-    scope = filters.model_dump_json(exclude_none=True) if filters else "{}"
-    return hashlib.sha256(scope.encode()).hexdigest()[:16]
+def cache_scope(index_version: str, filters: RetrievalFilter | None) -> str:
+    """The partition an entry lives in: same index version and same filters."""
+    filter_json = filters.model_dump_json(exclude_none=True) if filters else "{}"
+    return f"{index_version}:{hashlib.sha256(filter_json.encode()).hexdigest()[:16]}"
+
+
+def _in_scope(scope: str) -> models.Filter:
+    return models.Filter(
+        must=[models.FieldCondition(key=_SCOPE, match=models.MatchValue(value=scope))]
+    )
 
 
 class SemanticCache:
     """Look up and store answers by query-embedding similarity."""
 
-    def __init__(self, redis: Redis, settings: Settings) -> None:
+    def __init__(
+        self,
+        qdrant: AsyncQdrantClient,
+        redis: Redis,
+        settings: Settings,
+        matcher: CacheMatcher | None = None,
+    ) -> None:
+        """Without a *matcher*, only near-exact repeats (exact threshold) hit."""
+        self._qdrant = qdrant
+        self._matcher = matcher
+        self._exact = settings.semantic_cache_exact_threshold
         self._redis = redis
+        self._collection = settings.semantic_cache_collection
+        self._dimension = settings.embedding_dimension
         self._threshold = settings.semantic_cache_threshold
         self._ttl = settings.semantic_cache_ttl_seconds
         self._max_entries = settings.semantic_cache_max_entries
-
-    @staticmethod
-    def _keys(index_version: str, filters: RetrievalFilter | None) -> tuple[str, str]:
-        namespace = f"{_KEY_PREFIX}{index_version}:{_scope_hash(filters)}"
-        return f"{namespace}:vectors", f"{namespace}:answers"
+        self._ready = False
+        self._lock = asyncio.Lock()
 
     async def lookup(
         self,
         embedding: list[float],
+        question: str,
         index_version: str,
         filters: RetrievalFilter | None,
         request_id: str,
     ) -> CacheLookup:
-        """Return the most similar cached answer if it clears the threshold and is fresh."""
+        """Return the nearest cached answer in scope if it is fresh and fits *question*."""
         start = time.perf_counter()
-        vectors_key, answers_key = self._keys(index_version, filters)
+        candidate, similarity = None, None
         try:
-            entries = await self._redis.lrange(vectors_key, 0, -1)
-            best_id, similarity = self._best_match(entries, embedding)
-            answer = None
-            if best_id is not None and similarity >= self._threshold:
-                raw = await self._redis.hget(answers_key, best_id)
-                answer = self._parse_fresh(raw)
-        except RedisError as exc:
+            await self._ensure_collection()
+            result = await self._qdrant.query_points(
+                self._collection,
+                query=embedding,
+                query_filter=_in_scope(cache_scope(index_version, filters)),
+                limit=1,
+                with_payload=False,
+            )
+            if result.points:
+                point = result.points[0]
+                similarity = point.score
+                if similarity >= self._threshold:
+                    candidate = await self._fresh_answer(str(point.id))
+        except _BACKEND_ERRORS as exc:
             logger.warning(
-                "Semantic cache unavailable (Redis: %s); continuing uncached.",
+                "Semantic cache unavailable (%s: %s); continuing uncached.",
+                type(exc).__name__,
                 exc,
                 extra={"request_id": request_id},
             )
             return CacheLookup(answer=None, similarity=None)
 
+        match: MatchKind | None = None
+        if candidate is not None and similarity is not None:
+            match = await self._match(question, candidate.question, similarity, request_id)
+        answer = candidate if match in ("exact", "verified") else None
         logger.info(
-            "Semantic cache %s: entries=%d best_similarity=%s latency_ms=%.0f",
+            "Semantic cache %s: best_similarity=%s threshold=%.2f match=%s latency_ms=%.0f",
             "hit" if answer else "miss",
-            len(entries),
             "-" if similarity is None else f"{similarity:.4f}",
+            self._threshold,
+            match or "-",
             (time.perf_counter() - start) * 1000,
             extra={"request_id": request_id},
         )
-        return CacheLookup(answer=answer, similarity=similarity)
+        return CacheLookup(answer=answer, similarity=similarity, match=match)
+
+    async def _match(
+        self, question: str, cached_question: str, similarity: float, request_id: str
+    ) -> MatchKind:
+        if self._matcher is not None:
+            return await self._matcher.match(question, cached_question, similarity, request_id)
+        return "exact" if similarity >= self._exact else "failed"
 
     async def store(
         self,
@@ -105,24 +159,24 @@ class SemanticCache:
         filters: RetrievalFilter | None,
         request_id: str,
     ) -> None:
-        """Add an answer, evicting the oldest entries beyond the namespace cap."""
-        vectors_key, answers_key = self._keys(index_version, filters)
-        entry_id = uuid.uuid4().bytes
-        vector = np.asarray(embedding, dtype=np.float32).tobytes()
+        """Add an answer; drop expired entries and the oldest ones beyond the scope's cap."""
+        scope = cache_scope(index_version, filters)
+        entry_id = str(uuid.uuid4())
         try:
-            evicted = await self._redis.lrange(vectors_key, self._max_entries - 1, -1)
-            async with self._redis.pipeline(transaction=True) as pipe:
-                pipe.lpush(vectors_key, entry_id + vector)
-                pipe.ltrim(vectors_key, 0, self._max_entries - 1)
-                pipe.hset(answers_key, entry_id, answer.model_dump_json())
-                if evicted:
-                    pipe.hdel(answers_key, *(e[:_ID_BYTES] for e in evicted))
-                pipe.expire(vectors_key, self._ttl)
-                pipe.expire(answers_key, self._ttl)
-                await pipe.execute()
-        except RedisError as exc:
+            await self._ensure_collection()
+            # Answer first: a point whose answer is missing is just a miss.
+            await self._redis.set(_ANSWER_PREFIX + entry_id, answer.model_dump_json(), ex=self._ttl)
+            point = models.PointStruct(
+                id=entry_id,
+                vector=embedding,
+                payload={_SCOPE: scope, _CREATED_AT: answer.created_at},
+            )
+            await self._qdrant.upsert(self._collection, points=[point])
+            await self._prune(scope)
+        except _BACKEND_ERRORS as exc:
             logger.warning(
-                "Could not store answer in semantic cache (Redis: %s).",
+                "Could not store answer in semantic cache (%s: %s).",
+                type(exc).__name__,
                 exc,
                 extra={"request_id": request_id},
             )
@@ -130,36 +184,64 @@ class SemanticCache:
         logger.info("Semantic cache store.", extra={"request_id": request_id})
 
     async def clear(self, request_id: str) -> int:
-        """Delete every cache entry (all versions and scopes); return keys removed."""
+        """Delete every cached entry (all versions and scopes); return answers removed."""
         removed = 0
         try:
-            async for key in self._redis.scan_iter(match=f"{_KEY_PREFIX}*"):
+            async for key in self._redis.scan_iter(match=f"{_ANSWER_PREFIX}*"):
                 removed += await self._redis.delete(key)
-        except RedisError as exc:
+            if await self._qdrant.collection_exists(self._collection):
+                await self._qdrant.delete_collection(self._collection)
+            self._ready = False
+        except _BACKEND_ERRORS as exc:
             logger.warning(
-                "Could not clear semantic cache (Redis: %s).", exc, extra={"request_id": request_id}
+                "Could not clear semantic cache (%s: %s).",
+                type(exc).__name__,
+                exc,
+                extra={"request_id": request_id},
             )
-        logger.info("Semantic cache cleared: keys=%d", removed, extra={"request_id": request_id})
+        logger.info("Semantic cache cleared: entries=%d", removed, extra={"request_id": request_id})
         return removed
 
-    @staticmethod
-    def _best_match(
-        entries: list[bytes], embedding: list[float]
-    ) -> tuple[bytes | None, float | None]:
-        """Return (entry id, cosine) of the closest cached query; embeddings are L2-normalized."""
-        query = np.asarray(embedding, dtype=np.float32)
-        width = _ID_BYTES + query.nbytes
-        usable = [e for e in entries if len(e) == width]  # skip entries from another model width
-        if not usable:
-            return None, None
-        matrix = np.frombuffer(b"".join(e[_ID_BYTES:] for e in usable), dtype=np.float32)
-        scores = matrix.reshape(len(usable), -1) @ query
-        best = int(np.argmax(scores))
-        return usable[best][:_ID_BYTES], float(scores[best])
+    async def _ensure_collection(self) -> None:
+        """Create the cache collection once; recreate it if the embedder width changed."""
+        if self._ready:
+            return
+        async with self._lock:
+            if self._ready:
+                return
+            if await self._qdrant.collection_exists(self._collection):
+                info = await self._qdrant.get_collection(self._collection)
+                size = getattr(info.config.params.vectors, "size", None)
+                if size == self._dimension:
+                    self._ready = True
+                    return
+                logger.warning(
+                    "Semantic cache collection '%s' holds %s-d vectors, the embedder makes "
+                    "%d-d; recreating it.",
+                    self._collection,
+                    size,
+                    self._dimension,
+                )
+                await self._qdrant.delete_collection(self._collection)
+            await self._qdrant.create_collection(
+                self._collection,
+                vectors_config=models.VectorParams(
+                    size=self._dimension, distance=models.Distance.COSINE
+                ),
+            )
+            # Scope filters every lookup; created_at orders eviction.
+            await self._qdrant.create_payload_index(
+                self._collection, _SCOPE, models.PayloadSchemaType.KEYWORD
+            )
+            await self._qdrant.create_payload_index(
+                self._collection, _CREATED_AT, models.PayloadSchemaType.FLOAT
+            )
+            self._ready = True
 
-    def _parse_fresh(self, raw: bytes | None) -> CachedAnswer | None:
+    async def _fresh_answer(self, entry_id: str) -> CachedAnswer | None:
+        raw = await self._redis.get(_ANSWER_PREFIX + entry_id)
         if raw is None:
-            return None
+            return None  # expired in Redis; _prune removes the point later
         try:
             answer = CachedAnswer.model_validate_json(raw)
         except ValidationError:
@@ -167,3 +249,32 @@ class SemanticCache:
         if time.time() - answer.created_at > self._ttl:
             return None
         return answer
+
+    async def _prune(self, scope: str) -> None:
+        """Delete expired points everywhere, then the oldest points beyond the scope's cap."""
+        expired = models.Filter(
+            must=[
+                models.FieldCondition(
+                    key=_CREATED_AT, range=models.Range(lt=time.time() - self._ttl)
+                )
+            ]
+        )
+        await self._qdrant.delete(
+            self._collection, points_selector=models.FilterSelector(filter=expired)
+        )
+        count = (
+            await self._qdrant.count(self._collection, count_filter=_in_scope(scope), exact=True)
+        ).count
+        overflow = count - self._max_entries
+        if overflow <= 0:
+            return
+        oldest, _ = await self._qdrant.scroll(
+            self._collection,
+            scroll_filter=_in_scope(scope),
+            limit=overflow,
+            order_by=models.OrderBy(key=_CREATED_AT, direction=models.Direction.ASC),
+            with_payload=False,
+        )
+        ids = [str(p.id) for p in oldest]
+        await self._qdrant.delete(self._collection, points_selector=models.PointIdsList(points=ids))
+        await self._redis.delete(*(_ANSWER_PREFIX + i for i in ids))

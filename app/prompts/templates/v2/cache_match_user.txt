@@ -1,0 +1,3 @@
+New question: $question
+
+Earlier question (answer cached): $cached_question

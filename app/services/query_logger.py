@@ -44,6 +44,8 @@ class QueryLogRecord(BaseModel):
     route_reason: str | None = None
     cache_hit: bool = False
     cache_similarity: float | None = None
+    # exact | verified (hits) | rejected | failed (misses); None when no candidate
+    cache_match: str | None = None
     retrieved: list[RetrievedRef] = Field(default_factory=list)
     reranked: list[RetrievedRef] = Field(default_factory=list)
     grade: str | None = None

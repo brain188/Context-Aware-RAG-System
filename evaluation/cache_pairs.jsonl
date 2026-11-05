@@ -1,0 +1,50 @@
+{"id": "p-ds-01", "a": "What does Pearson's median skewness coefficient measure, and how is it computed?", "b": "How is Pearson's median skewness coefficient calculated and what does it tell you?", "same": true}
+{"id": "p-ds-02", "a": "What is kernel density estimation used for?", "b": "What is KDE good for?", "same": true}
+{"id": "p-ds-03", "a": "What is the difference between Pearson's correlation and Spearman's rank correlation?", "b": "How does Spearman's rank correlation differ from Pearson's correlation?", "same": true}
+{"id": "p-ds-04", "a": "How do I compute a 95% confidence interval for a sample mean?", "b": "How do you calculate a 95 percent confidence interval of the mean?", "same": true}
+{"id": "p-ds-05", "a": "What is a p-value in hypothesis testing?", "b": "Explain what a p-value means in a hypothesis test", "same": true}
+{"id": "p-ds-06", "a": "What is the bootstrap method in statistical inference?", "b": "How does bootstrapping work for statistical inference?", "same": true}
+{"id": "p-ds-07", "a": "What does a learning curve show?", "b": "What information does a learning curve give you?", "same": true}
+{"id": "p-ds-08", "a": "Why split data into training, validation and test sets?", "b": "What is the reason for having separate train, validation and test splits?", "same": true}
+{"id": "p-ds-09", "a": "How does a random forest classifier work?", "b": "Explain how random forests classify data", "same": true}
+{"id": "p-ds-10", "a": "What is a support vector machine?", "b": "What's an SVM?", "same": true}
+{"id": "p-ds-11", "a": "What does LASSO do in a sparse regression model?", "b": "How does the lasso make a regression model sparse?", "same": true}
+{"id": "p-ds-12", "a": "How can I measure the quality of a clustering?", "b": "What metrics evaluate how good a clustering is?", "same": true}
+{"id": "p-ds-13", "a": "What is PageRank?", "b": "Can you explain the PageRank algorithm?", "same": true}
+{"id": "p-ds-15", "a": "What is the difference between content-based and collaborative filtering in recommender systems?", "b": "Content-based vs collaborative filtering recommenders: how do they differ?", "same": true}
+{"id": "p-ds-16", "a": "What is a bag-of-words representation of text?", "b": "What does representing text as a bag of words mean?", "same": true}
+{"id": "p-dj-01", "a": "Who created Django, and when was it released to the public?", "b": "Who made Django and when did it first come out?", "same": true}
+{"id": "p-dj-02", "a": "What is Django's MTV pattern?", "b": "Explain the model-template-view architecture in Django", "same": true}
+{"id": "p-dj-03", "a": "Why should I use a virtual environment for a Django project?", "b": "What is the point of a virtualenv when working on Django?", "same": true}
+{"id": "p-dj-04", "a": "What is the difference between makemigrations and migrate?", "b": "makemigrations vs migrate: what does each command do?", "same": true}
+{"id": "p-dj-05", "a": "How do I define a one-to-many relationship between two Django models?", "b": "How do I set up a ForeignKey one-to-many relation in Django models?", "same": true}
+{"id": "p-dj-06", "a": "How do I choose which fields appear in the Django admin list view?", "b": "How can I control the columns shown in the Django admin change list?", "same": true}
+{"id": "p-dj-08", "a": "How does template inheritance work in Django?", "b": "How do I extend a base template in Django?", "same": true}
+{"id": "p-dj-11", "a": "When should I use select_related versus prefetch_related?", "b": "What's the difference between select_related and prefetch_related in Django?", "same": true}
+{"id": "p-dj-12", "a": "How do I configure a PostgreSQL database in Django?", "b": "How do I connect Django to Postgres?", "same": true}
+{"id": "p-dj-13", "a": "What does the DEBUG setting do, and what should it be in production?", "b": "Should DEBUG be True or False in production, and what does it control?", "same": true}
+{"id": "n-ds-03", "a": "What is Pearson's correlation?", "b": "What is Spearman's rank correlation?", "same": false, "note": "sibling concepts in one section"}
+{"id": "n-ds-04", "a": "How do I compute a 95% confidence interval for a sample mean?", "b": "How do I compute a 99% confidence interval for a sample mean?", "same": false, "note": "different z value"}
+{"id": "n-ds-05", "a": "What is a p-value in hypothesis testing?", "b": "What is a confidence interval in hypothesis testing?", "same": false}
+{"id": "n-ds-06", "a": "What is the bootstrap method in statistical inference?", "b": "What is the frequentist approach to statistical inference?", "same": false}
+{"id": "n-ds-08", "a": "What is the validation set used for?", "b": "What is the test set used for?", "same": false, "note": "the book contrasts them"}
+{"id": "n-ds-09", "a": "How does a random forest classifier work?", "b": "How does a decision tree classifier work?", "same": false}
+{"id": "n-ds-10", "a": "What is a support vector machine?", "b": "What is a random forest?", "same": false}
+{"id": "n-ds-11", "a": "What does LASSO do in a sparse regression model?", "b": "What does ridge regression do?", "same": false}
+{"id": "n-ds-12", "a": "What is the adjusted Rand index?", "b": "What is the V-measure for clustering?", "same": false}
+{"id": "n-ds-13", "a": "What is PageRank?", "b": "What is eigenvector centrality?", "same": false}
+{"id": "n-ds-15", "a": "How does content-based filtering work?", "b": "How does collaborative filtering work?", "same": false, "note": "sibling sections"}
+{"id": "n-ds-16", "a": "What is a bag-of-words representation of text?", "b": "What is TF-IDF?", "same": false}
+{"id": "n-ds-17", "a": "What is the direct view of IPython engines?", "b": "What is the load-balanced view of IPython engines?", "same": false}
+{"id": "n-ds-mean", "a": "How do I compute the mean of a sample?", "b": "How do I compute the median of a sample?", "same": false}
+{"id": "n-dj-04", "a": "What does makemigrations do?", "b": "What does migrate do?", "same": false}
+{"id": "n-dj-04b", "a": "How do I create a migration in Django?", "b": "How do I roll back a migration in Django?", "same": false}
+{"id": "n-dj-05", "a": "How do I define a one-to-many relationship between two Django models?", "b": "How do I define a many-to-many relationship between two Django models?", "same": false, "note": "one word apart"}
+{"id": "n-dj-05b", "a": "How do I define a one-to-one relationship in Django?", "b": "How do I define a one-to-many relationship in Django?", "same": false}
+{"id": "n-dj-06", "a": "How do I choose which fields appear in the Django admin list view?", "b": "How do I add search to the Django admin list view?", "same": false}
+{"id": "n-dj-07", "a": "What is a function-based view in Django?", "b": "What is a class-based view in Django?", "same": false}
+{"id": "n-dj-09", "a": "How do I add field-level validation to a Django form?", "b": "How do I add form-level validation to a Django form?", "same": false, "note": "clean_<field> vs clean()"}
+{"id": "n-dj-11", "a": "What does select_related do?", "b": "What does prefetch_related do?", "same": false}
+{"id": "n-dj-12", "a": "How do I configure a PostgreSQL database in Django?", "b": "How do I configure a MySQL database in Django?", "same": false, "note": "different settings block"}
+{"id": "n-dj-13", "a": "What does the DEBUG setting do in Django?", "b": "What does the ALLOWED_HOSTS setting do in Django?", "same": false}
+{"id": "n-dj-15", "a": "How do I handle POST requests in a class-based view?", "b": "How do I handle PUT requests in a class-based view?", "same": false}

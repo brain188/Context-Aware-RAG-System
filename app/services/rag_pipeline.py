@@ -158,8 +158,10 @@ class RagPipeline:
 
         if self._settings.semantic_cache_enabled:
             with timer("cache_lookup"):
-                lookup = await self._cache.lookup(vector, index_version, query.filters, rid)
-            record.cache_similarity = lookup.similarity
+                lookup = await self._cache.lookup(
+                    vector, question, index_version, query.filters, rid
+                )
+            record.cache_similarity, record.cache_match = lookup.similarity, lookup.match
             if lookup.answer is not None:
                 record.cache_hit = True
                 answer = self._answer(query, lookup.answer.text, lookup.answer.citations)

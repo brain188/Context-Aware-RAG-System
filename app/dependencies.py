@@ -19,6 +19,7 @@ from app.retrieval.hybrid_retriever import HybridRetriever
 from app.retrieval.query_embedder import QueryEmbedder, SentenceTransformerQueryEmbedder
 from app.retrieval.reranker import CrossEncoderScorer, PairScorer, Reranker
 from app.retrieval.sparse_encoder import BM25SparseEncoder
+from app.services.cache_matcher import CacheMatcher
 from app.services.conversation import ConversationStore, QueryRewriter
 from app.services.generator import AnswerGenerator
 from app.services.index_version import IndexVersionProvider
@@ -67,7 +68,6 @@ def build_services(settings: Settings, query_log: QueryLogSink | None = None) ->
         api_key=settings.qdrant_api_key,
         timeout=settings.qdrant_timeout_seconds,
     )
-    # Bytes in, bytes out: the semantic cache stores raw float32 vectors.
     redis = Redis.from_url(settings.redis_url, decode_responses=False)
     llms = LLMFactory(settings)
     generation_llm, fast_llm = llms.get("generation"), llms.get("fast")
@@ -75,7 +75,7 @@ def build_services(settings: Settings, query_log: QueryLogSink | None = None) ->
     scorer = CrossEncoderScorer(settings)
 
     catalog = LibraryCatalog(qdrant, settings)
-    cache = SemanticCache(redis, settings)
+    cache = SemanticCache(qdrant, redis, settings, CacheMatcher(fast_llm, settings))
     if query_log is None:
         query_log = JsonlQueryLog(settings)
     retrieval = RetrievalStage(

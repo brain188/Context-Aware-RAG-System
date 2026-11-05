@@ -65,7 +65,18 @@ class TestPrompts:
 
     @pytest.mark.parametrize(
         "version, extra",
-        [("v1", set()), ("v2", {"retrieval_rewrite_system", "retrieval_rewrite_user"})],
+        [
+            ("v1", set()),
+            (
+                "v2",
+                {
+                    "retrieval_rewrite_system",
+                    "retrieval_rewrite_user",
+                    "cache_match_system",
+                    "cache_match_user",
+                },
+            ),
+        ],
     )
     def test_each_version_has_every_template_the_app_loads(
         self, version: str, extra: set[str]

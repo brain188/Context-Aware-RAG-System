@@ -8,6 +8,8 @@ from typing import Any
 
 import pytest
 from fakeredis import FakeAsyncRedis, FakeServer
+from qdrant_client import AsyncQdrantClient, models
+from qdrant_client.http.exceptions import ResponseHandlingException
 
 from app.config import Settings
 from app.errors import IngestRequestError
@@ -15,6 +17,7 @@ from app.llm import LLMError
 from app.models import Citation, IngestRequest, RetrievalFilter, ScoredChunk
 from app.retrieval.grader import RetrievalGrader
 from app.retrieval.query_rewriter import SearchQueryRewriter
+from app.services.cache_matcher import CacheMatcher
 from app.services.conversation import ConversationStore, QueryRewriter, Turn
 from app.services.index_version import IndexVersionProvider, settings_fingerprint
 from app.services.ingest_jobs import IngestJobManager
@@ -104,69 +107,241 @@ class TestQueryRewriter:
 # ---------------------------------------------------------------------------
 
 
+def _new_cache(
+    settings: Settings, redis: FakeAsyncRedis
+) -> tuple[SemanticCache, AsyncQdrantClient]:
+    qdrant = AsyncQdrantClient(location=":memory:")
+    return SemanticCache(qdrant, redis, settings), qdrant
+
+
 class TestSemanticCache:
     @pytest.mark.asyncio
     async def test_similar_query_hits(self, settings: Settings, redis: FakeAsyncRedis) -> None:
-        cache = SemanticCache(redis, settings)
+        cache, _ = _new_cache(settings, redis)
         await cache.store(_E1, _cached(), "v1", None, "r")
-        lookup = await cache.lookup([0.99, 0.1, 0.0, 0.0], "v1", None, "r")  # cosine ≈ 0.995
+        lookup = await cache.lookup([0.99, 0.1, 0.0, 0.0], "q", "v1", None, "r")  # cosine ≈ 0.995
         assert lookup.answer is not None and lookup.answer.text.startswith("KL")
         assert lookup.similarity is not None and lookup.similarity > 0.98
 
     @pytest.mark.asyncio
     async def test_dissimilar_query_misses(self, settings: Settings, redis: FakeAsyncRedis) -> None:
-        cache = SemanticCache(redis, settings)
+        cache, _ = _new_cache(settings, redis)
         await cache.store(_E1, _cached(), "v1", None, "r")
-        lookup = await cache.lookup(_E2, "v1", None, "r")
-        assert lookup.answer is None and lookup.similarity == pytest.approx(0.0)
+        lookup = await cache.lookup(_E2, "q", "v1", None, "r")
+        assert lookup.answer is None and lookup.similarity == pytest.approx(0.0, abs=1e-6)
+
+    @pytest.mark.asyncio
+    async def test_empty_cache_is_a_quiet_miss(
+        self, settings: Settings, redis: FakeAsyncRedis
+    ) -> None:
+        cache, _ = _new_cache(settings, redis)
+        lookup = await cache.lookup(_E1, "q", "v1", None, "r")
+        assert lookup.answer is None and lookup.similarity is None
 
     @pytest.mark.asyncio
     async def test_other_filters_or_index_version_never_hit(
         self, settings: Settings, redis: FakeAsyncRedis
     ) -> None:
-        cache = SemanticCache(redis, settings)
+        cache, _ = _new_cache(settings, redis)
         await cache.store(_E1, _cached(), "v1", None, "r")
         scoped = RetrievalFilter(books=["PRML"])
-        assert (await cache.lookup(_E1, "v1", scoped, "r")).answer is None
-        assert (await cache.lookup(_E1, "v2", None, "r")).answer is None
+        assert (await cache.lookup(_E1, "q", "v1", scoped, "r")).answer is None
+        assert (await cache.lookup(_E1, "q", "v2", None, "r")).answer is None
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "change", [{"prompt_version": "v1"}, {"llm_generation_model": "other-model"}]
+    )
+    async def test_prompt_or_model_change_is_a_miss(
+        self, tmp_path: Path, redis: FakeAsyncRedis, change: dict[str, str]
+    ) -> None:
+        before, after = make_settings(tmp_path), make_settings(tmp_path, **change)
+        index = await seeded_qdrant(before)
+        old_version = await IndexVersionProvider(index, before).current()
+        new_version = await IndexVersionProvider(index, after).current()
+        cache, _ = _new_cache(before, redis)
+        await cache.store(_E1, _cached(), old_version, None, "r")
+        assert (await cache.lookup(_E1, "q", old_version, None, "r")).answer is not None
+        assert (await cache.lookup(_E1, "q", new_version, None, "r")).answer is None
 
     @pytest.mark.asyncio
     async def test_expired_entry_misses(self, settings: Settings, redis: FakeAsyncRedis) -> None:
-        cache = SemanticCache(redis, settings)
+        cache, _ = _new_cache(settings, redis)
         await cache.store(
             _E1, _cached(age_s=settings.semantic_cache_ttl_seconds + 1), "v1", None, "r"
         )
-        assert (await cache.lookup(_E1, "v1", None, "r")).answer is None
+        assert (await cache.lookup(_E1, "q", "v1", None, "r")).answer is None
+
+    @pytest.mark.asyncio
+    async def test_answer_expired_in_redis_is_a_miss(
+        self, settings: Settings, redis: FakeAsyncRedis
+    ) -> None:
+        cache, _ = _new_cache(settings, redis)
+        await cache.store(_E1, _cached(), "v1", None, "r")
+        await redis.delete(*[k async for k in redis.scan_iter(match="rag:cache:answer:*")])
+        lookup = await cache.lookup(_E1, "q", "v1", None, "r")
+        assert lookup.answer is None and lookup.similarity == pytest.approx(1.0)
+
+    @pytest.mark.asyncio
+    async def test_answers_carry_the_ttl(self, settings: Settings, redis: FakeAsyncRedis) -> None:
+        cache, _ = _new_cache(settings, redis)
+        await cache.store(_E1, _cached(), "v1", None, "r")
+        [key] = [k async for k in redis.scan_iter(match="rag:cache:answer:*")]
+        assert 0 < await redis.ttl(key) <= settings.semantic_cache_ttl_seconds
 
     @pytest.mark.asyncio
     async def test_evicts_oldest_beyond_cap(self, tmp_path: Path, redis: FakeAsyncRedis) -> None:
-        cache = SemanticCache(redis, make_settings(tmp_path, semantic_cache_max_entries=2))
-        for vector in (_E1, _E2, [0.0, 0.0, 1.0, 0.0]):
-            await cache.store(vector, _cached(), "v1", None, "r")
-        assert (await cache.lookup(_E1, "v1", None, "r")).answer is None
-        assert (await cache.lookup(_E2, "v1", None, "r")).answer is not None
-        answers_keys = [k async for k in redis.scan_iter(match="rag:cache:*:answers")]
-        assert await redis.hlen(answers_keys[0]) == 2  # evicted answer deleted too
+        cache, _ = _new_cache(make_settings(tmp_path, semantic_cache_max_entries=2), redis)
+        for age, vector in ((30, _E1), (20, _E2), (10, [0.0, 0.0, 1.0, 0.0])):
+            await cache.store(vector, _cached(age_s=age), "v1", None, "r")
+        assert (await cache.lookup(_E1, "q", "v1", None, "r")).answer is None
+        assert (await cache.lookup(_E2, "q", "v1", None, "r")).answer is not None
+        answers = [k async for k in redis.scan_iter(match="rag:cache:answer:*")]
+        assert len(answers) == 2  # the evicted answer is deleted too
 
     @pytest.mark.asyncio
-    async def test_redis_down_is_a_miss(
-        self, settings: Settings, redis: FakeAsyncRedis, redis_server: FakeServer
+    async def test_cap_is_per_scope(self, tmp_path: Path, redis: FakeAsyncRedis) -> None:
+        cache, _ = _new_cache(make_settings(tmp_path, semantic_cache_max_entries=1), redis)
+        await cache.store(_E1, _cached(), "v1", None, "r")
+        await cache.store(_E2, _cached(), "v1", RetrievalFilter(books=["PRML"]), "r")
+        assert (await cache.lookup(_E1, "q", "v1", None, "r")).answer is not None
+
+    @pytest.mark.asyncio
+    async def test_redis_down_is_a_miss_with_a_warning(
+        self,
+        settings: Settings,
+        redis: FakeAsyncRedis,
+        redis_server: FakeServer,
+        caplog: pytest.LogCaptureFixture,
     ) -> None:
-        cache = SemanticCache(redis, settings)
+        cache, _ = _new_cache(settings, redis)
+        await cache.store(_E1, _cached(), "v1", None, "r")
         redis_server.connected = False
-        await cache.store(_E1, _cached(), "v1", None, "r")  # must not raise
-        lookup = await cache.lookup(_E1, "v1", None, "r")
+        await cache.store(_E2, _cached(), "v1", None, "r")  # must not raise
+        lookup = await cache.lookup(_E1, "q", "v1", None, "r")
         assert lookup.answer is None and lookup.similarity is None
+        assert any(r.levelname == "WARNING" for r in caplog.records)
 
     @pytest.mark.asyncio
-    async def test_clear_removes_every_namespace(
+    async def test_qdrant_down_is_a_miss_with_a_warning(
+        self,
+        settings: Settings,
+        redis: FakeAsyncRedis,
+        monkeypatch: pytest.MonkeyPatch,
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        cache, qdrant = _new_cache(settings, redis)
+        await cache.store(_E1, _cached(), "v1", None, "r")
+
+        async def down(*args: Any, **kwargs: Any) -> Any:
+            raise ResponseHandlingException(ConnectionError("connection refused"))
+
+        monkeypatch.setattr(qdrant, "query_points", down)
+        monkeypatch.setattr(qdrant, "upsert", down)
+        await cache.store(_E2, _cached(), "v1", None, "r")  # must not raise
+        lookup = await cache.lookup(_E1, "q", "v1", None, "r")
+        assert lookup.answer is None and lookup.similarity is None
+        assert "Semantic cache unavailable" in caplog.text
+
+    @pytest.mark.asyncio
+    async def test_recreates_a_collection_of_another_width(
         self, settings: Settings, redis: FakeAsyncRedis
     ) -> None:
-        cache = SemanticCache(redis, settings)
+        cache, qdrant = _new_cache(settings, redis)
+        await qdrant.create_collection(
+            settings.semantic_cache_collection,
+            vectors_config=models.VectorParams(size=3, distance=models.Distance.COSINE),
+        )
+        await cache.store(_E1, _cached(), "v1", None, "r")
+        assert (await cache.lookup(_E1, "q", "v1", None, "r")).answer is not None
+
+    @pytest.mark.asyncio
+    async def test_clear_removes_every_scope(
+        self, settings: Settings, redis: FakeAsyncRedis
+    ) -> None:
+        cache, qdrant = _new_cache(settings, redis)
         await cache.store(_E1, _cached(), "v1", None, "r")
         await cache.store(_E1, _cached(), "v2", RetrievalFilter(books=["ESL"]), "r")
-        assert await cache.clear("r") == 4  # vectors + answers per namespace
-        assert (await cache.lookup(_E1, "v1", None, "r")).answer is None
+        assert await cache.clear("r") == 2
+        assert not await qdrant.collection_exists(settings.semantic_cache_collection)
+        assert (await cache.lookup(_E1, "q", "v1", None, "r")).answer is None
+        await cache.store(_E1, _cached(), "v1", None, "r")  # usable again after a clear
+        assert (await cache.lookup(_E1, "q", "v1", None, "r")).answer is not None
+
+
+_NEAR = [0.9, 0.4359, 0.0, 0.0]  # cosine ≈ 0.90 with _E1: a candidate, not a repeat
+
+
+class TestCacheMatching:
+    async def _verified_cache(
+        self, settings: Settings, redis: FakeAsyncRedis, llm: FakeLLM
+    ) -> SemanticCache:
+        qdrant = AsyncQdrantClient(location=":memory:")
+        cache = SemanticCache(qdrant, redis, settings, CacheMatcher(llm, settings))
+        await cache.store(_E1, _cached(), "v1", None, "r")  # cached question: "q"
+        return cache
+
+    @pytest.mark.asyncio
+    async def test_confirmed_candidate_hits(
+        self, settings: Settings, redis: FakeAsyncRedis, llm: FakeLLM
+    ) -> None:
+        cache = await self._verified_cache(settings, redis, llm)
+        lookup = await cache.lookup(_NEAR, "q reworded", "v1", None, "r")
+        assert lookup.answer is not None and lookup.match == "verified"
+        assert llm.calls == ["cache_match"]
+
+    @pytest.mark.asyncio
+    async def test_rejected_candidate_misses(
+        self, settings: Settings, redis: FakeAsyncRedis, llm: FakeLLM
+    ) -> None:
+        llm.cache_matches = ['{"verdict": "different", "reason": "95% vs 99%"}']
+        cache = await self._verified_cache(settings, redis, llm)
+        lookup = await cache.lookup(_NEAR, "another question", "v1", None, "r")
+        assert lookup.answer is None and lookup.match == "rejected"
+
+    @pytest.mark.asyncio
+    async def test_near_exact_repeat_skips_the_llm(
+        self, settings: Settings, redis: FakeAsyncRedis, llm: FakeLLM
+    ) -> None:
+        cache = await self._verified_cache(settings, redis, llm)
+        lookup = await cache.lookup(_E1, "q, asked again", "v1", None, "r")
+        assert lookup.match == "exact" and lookup.answer is not None
+        assert llm.calls == []
+
+    @pytest.mark.asyncio
+    async def test_below_the_candidate_threshold_skips_the_llm(
+        self, settings: Settings, redis: FakeAsyncRedis, llm: FakeLLM
+    ) -> None:
+        cache = await self._verified_cache(settings, redis, llm)
+        lookup = await cache.lookup(_E2, "unrelated", "v1", None, "r")
+        assert lookup.answer is None and lookup.match is None and llm.calls == []
+
+    @pytest.mark.asyncio
+    async def test_llm_failure_is_a_miss(
+        self, settings: Settings, redis: FakeAsyncRedis, llm: FakeLLM
+    ) -> None:
+        llm.cache_matches = ["not json"]
+        cache = await self._verified_cache(settings, redis, llm)
+        lookup = await cache.lookup(_NEAR, "q reworded", "v1", None, "r")
+        assert lookup.answer is None and lookup.match == "failed"
+
+    @pytest.mark.asyncio
+    async def test_prompt_version_without_template_only_hits_repeats(
+        self, tmp_path: Path, redis: FakeAsyncRedis, llm: FakeLLM
+    ) -> None:
+        cache = await self._verified_cache(make_settings(tmp_path, prompt_version="v1"), redis, llm)
+        assert (await cache.lookup(_NEAR, "q reworded", "v1", None, "r")).match == "failed"
+        assert (await cache.lookup(_E1, "q reworded", "v1", None, "r")).match == "exact"
+        assert llm.calls == []
+
+    @pytest.mark.asyncio
+    async def test_without_a_matcher_only_repeats_hit(
+        self, settings: Settings, redis: FakeAsyncRedis
+    ) -> None:
+        cache, _ = _new_cache(settings, redis)
+        await cache.store(_E1, _cached(), "v1", None, "r")
+        assert (await cache.lookup(_NEAR, "q reworded", "v1", None, "r")).answer is None
+        assert (await cache.lookup(_E1, "q reworded", "v1", None, "r")).answer is not None
 
 
 # ---------------------------------------------------------------------------

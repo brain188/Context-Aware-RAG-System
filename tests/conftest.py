@@ -26,6 +26,7 @@ from app.retrieval.query_rewriter import SearchQueryRewriter
 from app.retrieval.hybrid_retriever import HybridRetriever
 from app.retrieval.reranker import Reranker
 from app.retrieval.sparse_encoder import BM25SparseEncoder
+from app.services.cache_matcher import CacheMatcher
 from app.services.conversation import ConversationStore, QueryRewriter
 from app.services.generator import AnswerGenerator
 from app.services.index_version import IndexVersionProvider, embedder_stamp
@@ -120,8 +121,9 @@ class FakeLLM:
         self.rewrites = ["standalone question"]
         self.search_rewrites = ["Kullback-Leibler divergence definition"]
         self.structured = ['{"faithfulness": 1.0, "answer_relevance": 1.0}']
+        self.cache_matches = ['{"verdict": "same", "reason": "paraphrase"}']
         self.fail_stream = False
-        # "grade" | "rewrite" | "search_rewrite" | "answer" | "structured"
+        # "grade" | "rewrite" | "search_rewrite" | "cache_match" | "answer" | "structured"
         self.calls: list[str] = []
 
     @staticmethod
@@ -146,6 +148,9 @@ class FakeLLM:
         if "You judge whether excerpts" in system:
             self.calls.append("grade")
             return parse_structured(self._pop(self.grades), schema)
+        if "You decide whether a cached answer" in system:
+            self.calls.append("cache_match")
+            return parse_structured(self._pop(self.cache_matches), schema)
         self.calls.append("structured")
         return parse_structured(self._pop(self.structured), schema)
 
@@ -210,7 +215,7 @@ async def build_test_services(
     qdrant = await seeded_qdrant(settings)
     embedder, scorer = FakeEmbedder(), FakeScorer()
     catalog = LibraryCatalog(qdrant, settings)
-    cache = SemanticCache(redis, settings)
+    cache = SemanticCache(qdrant, redis, settings, CacheMatcher(llm, settings))
     if query_log is None:
         query_log = JsonlQueryLog(settings)
     retrieval = RetrievalStage(

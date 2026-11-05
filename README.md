@@ -152,6 +152,30 @@ Scoring re-grades the stored excerpts, so labels stay valid after a re-ingest. A
 re-export keeps your labels for questions whose excerpts did not change. The file holds
 book text, so it lives in the gitignored `data/` folder.
 
+### Tuning the semantic cache
+
+The cache embeds the standalone question and asks a small Qdrant collection
+(`semantic_cache`) for the nearest cached question in the same scope: the same index
+version (which covers the prompt version, generation model, embedder and point count) and
+the same filters. Answers live in Redis with a TTL. A neighbour at or above
+`SEMANTIC_CACHE_THRESHOLD` is only a candidate: near-exact repeats
+(`SEMANTIC_CACHE_EXACT_THRESHOLD`) hit at once, anything else needs one fast-model check
+that both questions share one answer. Embedding similarity alone puts "field-level" and
+"form-level validation" at 0.97, so a threshold by itself either serves wrong answers or
+almost never hits. Only confident answers are cached; refusals, low-confidence answers and
+anything degraded by a provider error never are. Qdrant or Redis failures are a miss.
+
+```bash
+python -m evaluation.cache_threshold            # similarity only: free, embedding model only
+python -m evaluation.cache_threshold --verify   # + the LLM check: what the pipeline serves
+```
+
+`evaluation/cache_pairs.jsonl` holds paraphrase pairs (`"same": true`) and different
+questions on the same topic (`"same": false`). The report gives the hit rate and the
+false-hit rate per threshold and recommends the lowest threshold with no false hits.
+Each query log record has `cache_similarity` and `cache_match` (`exact`, `verified`,
+`rejected`, `failed`).
+
 ## Development
 
 ```bash

@@ -137,7 +137,18 @@ class Settings(BaseSettings):
 
     # --- Semantic cache ---
     semantic_cache_enabled: bool = True
-    semantic_cache_threshold: float = 0.92  # cosine similarity of query embeddings
+    # Qdrant collection of cached question embeddings; answers live in Redis.
+    semantic_cache_collection: str = "semantic_cache"
+    # Cosine similarity of standalone-question embeddings for a cache *candidate*; the fast
+    # model then confirms that one answer serves both questions (services/cache_matcher.py).
+    # Similarity alone cannot separate paraphrases from near-identical different questions
+    # (bge-base: "field-level" vs "form-level validation" = 0.97). Tune both with
+    # `python -m evaluation.cache_threshold --verify`. Measured on 50 pairs with the check:
+    # 0.80 → 68% of paraphrases hit, 0 of 25 near-identical different questions did
+    # (similarity alone: 44% false hits at 0.80, and 0.97 needed for none, with 4% hits).
+    semantic_cache_threshold: float = 0.80
+    # At or above this, a candidate is a repeat and hits without the LLM check.
+    semantic_cache_exact_threshold: float = 0.99
     semantic_cache_ttl_seconds: int = 86400
     semantic_cache_max_entries: int = 500  # per index version + filter scope
 
