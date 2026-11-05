@@ -79,6 +79,7 @@ _CONFIG_FIELDS = (
     "rerank_top_k",
     "rrf_k",
     "grade_min_rerank_score",
+    "grader_max_retries",
     "chunk_min_tokens",
     "chunk_max_tokens",
     "chunk_overlap_tokens",
@@ -172,7 +173,7 @@ def run_config(settings: Settings, index_version: str, judge_model: str | None) 
     return config
 
 
-def _qdrant_client(settings: Settings) -> AsyncQdrantClient:
+def qdrant_client_for(settings: Settings) -> AsyncQdrantClient:
     return AsyncQdrantClient(
         url=settings.qdrant_url,
         api_key=settings.qdrant_api_key,
@@ -209,7 +210,7 @@ async def run(args: argparse.Namespace) -> int:
 
     capture = CapturingQueryLog(JsonlQueryLog(settings)) if mode == "full" else None
     services = build_services(settings, query_log=capture) if capture else None
-    qdrant = services.qdrant if services else _qdrant_client(settings)
+    qdrant = services.qdrant if services else qdrant_client_for(settings)
     try:
         await check_index_embedder(qdrant, settings)
         index_version = await IndexVersionProvider(qdrant, settings).current()
@@ -281,7 +282,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument(
         "--set",
         action="append",
-        type=_override,
+        type=parse_override,
         default=[],
         metavar="NAME=VALUE",
         help="override one setting for this run (repeatable), e.g. rerank_top_k=8",
@@ -299,7 +300,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     return args
 
 
-def _override(text: str) -> tuple[str, str]:
+def parse_override(text: str) -> tuple[str, str]:
     name, sep, value = text.partition("=")
     if not sep or not name.strip():
         raise argparse.ArgumentTypeError(f"expected NAME=VALUE, got {text!r}")

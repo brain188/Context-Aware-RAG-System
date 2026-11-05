@@ -14,6 +14,7 @@ from redis.asyncio import Redis
 from app.config import Settings, get_logger
 from app.llm import LLMFactory
 from app.retrieval.grader import RetrievalGrader
+from app.retrieval.query_rewriter import SearchQueryRewriter
 from app.retrieval.hybrid_retriever import HybridRetriever
 from app.retrieval.query_embedder import QueryEmbedder, SentenceTransformerQueryEmbedder
 from app.retrieval.reranker import CrossEncoderScorer, PairScorer, Reranker
@@ -81,6 +82,8 @@ def build_services(settings: Settings, query_log: QueryLogSink | None = None) ->
         HybridRetriever(qdrant, embedder, BM25SparseEncoder(settings), settings),
         Reranker(scorer, settings),
         RetrievalGrader(fast_llm, settings),
+        SearchQueryRewriter(fast_llm, settings),
+        max_rewrites=settings.grader_max_retries,
     )
     pipeline = RagPipeline(
         settings=settings,

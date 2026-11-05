@@ -22,6 +22,7 @@ from app.llm import LLMError, LLMResult
 from app.llm.base import T, parse_structured
 from app.models import Chunk, ChunkMetadata
 from app.retrieval.grader import RetrievalGrader
+from app.retrieval.query_rewriter import SearchQueryRewriter
 from app.retrieval.hybrid_retriever import HybridRetriever
 from app.retrieval.reranker import Reranker
 from app.retrieval.sparse_encoder import BM25SparseEncoder
@@ -102,10 +103,10 @@ def _terms(text: str) -> set[str]:
 
 
 class FakeScorer:
-    """0.95 when query and passage share a content word, else 0.01 (below the grade floor)."""
+    """0.95 when query and passage share a content word, else 0.001 (below the grade floor)."""
 
     def score(self, pairs: list[tuple[str, str]]) -> list[float]:
-        return [0.95 if _terms(q) & _terms(p) else 0.01 for q, p in pairs]
+        return [0.95 if _terms(q) & _terms(p) else 0.001 for q, p in pairs]
 
 
 class FakeLLM:
@@ -117,9 +118,11 @@ class FakeLLM:
         self.answer = "The KL divergence measures how distributions differ [S1]."
         self.grades = ['{"grade": "correct", "reason": "direct match"}']
         self.rewrites = ["standalone question"]
+        self.search_rewrites = ["Kullback-Leibler divergence definition"]
         self.structured = ['{"faithfulness": 1.0, "answer_relevance": 1.0}']
         self.fail_stream = False
-        self.calls: list[str] = []  # "grade" | "rewrite" | "answer" | "structured"
+        # "grade" | "rewrite" | "search_rewrite" | "answer" | "structured"
+        self.calls: list[str] = []
 
     @staticmethod
     def _pop(queue: list[str]) -> str:
@@ -131,15 +134,18 @@ class FakeLLM:
     async def generate(
         self, *, system: str, prompt: str, max_tokens: int, request_id: str
     ) -> LLMResult:
-        if "You judge" in system:
-            self.calls.append("grade")
-            return self._result(self._pop(self.grades))
+        if "write search queries" in system:
+            self.calls.append("search_rewrite")
+            return self._result(self._pop(self.search_rewrites))
         self.calls.append("rewrite")
         return self._result(self._pop(self.rewrites))
 
     async def generate_structured(
         self, *, system: str, prompt: str, schema: type[T], max_tokens: int, request_id: str
     ) -> T:
+        if "You judge whether excerpts" in system:
+            self.calls.append("grade")
+            return parse_structured(self._pop(self.grades), schema)
         self.calls.append("structured")
         return parse_structured(self._pop(self.structured), schema)
 
@@ -211,6 +217,8 @@ async def build_test_services(
         HybridRetriever(qdrant, embedder, BM25SparseEncoder(settings), settings),
         Reranker(scorer, settings),
         RetrievalGrader(llm, settings),
+        SearchQueryRewriter(llm, settings),
+        max_rewrites=settings.grader_max_retries,
     )
     pipeline = RagPipeline(
         settings=settings,

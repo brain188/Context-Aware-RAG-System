@@ -23,6 +23,14 @@ class RetrievedRef(BaseModel):
     score: float
 
 
+class SearchRetry(BaseModel):
+    """One rewrite-and-retrieve attempt after an ambiguous grade."""
+
+    query: str
+    grade: str
+    adopted: bool
+
+
 class QueryLogRecord(BaseModel):
     """Everything about one query, written once at the end of the pipeline."""
 
@@ -40,6 +48,11 @@ class QueryLogRecord(BaseModel):
     reranked: list[RetrievedRef] = Field(default_factory=list)
     grade: str | None = None
     grade_reason: str | None = None
+    # chunk_id → relevant | partial | irrelevant, from the grader, for the reranked chunks.
+    grade_relevance: dict[str, str] = Field(default_factory=dict)
+    search_retries: list[SearchRetry] = Field(default_factory=list)
+    # The search query the answer's chunks came from, when a rewrite was adopted.
+    search_query: str | None = None
     retried_without_filters: bool = False
     grounding: str | None = None  # output guard verdict
     status: str = "incomplete"  # answered | low_confidence | not_covered | error | cancelled

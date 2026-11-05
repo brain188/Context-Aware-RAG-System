@@ -1,0 +1,1257 @@
+{
+  "run": {
+    "started_at": "2026-11-05T18:51:42Z",
+    "mode": "full",
+    "git": {
+      "commit": "8a66c83",
+      "dirty": true
+    },
+    "questions_file": "eval_questions.jsonl",
+    "question_count": 5,
+    "selection": {
+      "ids": null,
+      "tags": [
+        "out-of-scope"
+      ],
+      "overrides": {}
+    },
+    "config": {
+      "embedding_model": "BAAI/bge-base-en-v1.5",
+      "embedding_query_instruction": "Represent this sentence for searching relevant passages: ",
+      "reranker_model": "BAAI/bge-reranker-base",
+      "llm_provider": "gemini",
+      "llm_generation_model": "gemini-3.8-flash",
+      "llm_fast_model": "gemini-3.5-flash-lite",
+      "llm_generation_thinking": "low",
+      "llm_fast_thinking": "minimal",
+      "llm_fallback_provider": "groq",
+      "llm_temperature": null,
+      "prompt_version": "v2",
+      "retrieval_top_k": 20,
+      "rerank_top_k": 5,
+      "rrf_k": 60,
+      "grade_min_rerank_score": 0.005,
+      "grader_max_retries": 1,
+      "chunk_min_tokens": 100,
+      "chunk_max_tokens": 512,
+      "chunk_overlap_tokens": 50,
+      "index_version": "9d136f60e1b6-451"
+    }
+  },
+  "summary": {
+    "abstained": {
+      "mean": 1.0,
+      "n": 5
+    },
+    "errored": {
+      "mean": 0.0,
+      "n": 5
+    }
+  },
+  "by_tag": {
+    "out-of-scope": {
+      "abstained": {
+        "mean": 1.0,
+        "n": 5
+      },
+      "errored": {
+        "mean": 0.0,
+        "n": 5
+      }
+    },
+    "seed": {
+      "abstained": {
+        "mean": 1.0,
+        "n": 5
+      },
+      "errored": {
+        "mean": 0.0,
+        "n": 5
+      }
+    },
+    "smoke": {
+      "abstained": {
+        "mean": 1.0,
+        "n": 2
+      },
+      "errored": {
+        "mean": 0.0,
+        "n": 2
+      }
+    }
+  },
+  "results": [
+    {
+      "id": "oos-01",
+      "question": "How does backpropagation train a neural network?",
+      "tags": [
+        "seed",
+        "out-of-scope",
+        "smoke"
+      ],
+      "answerable": false,
+      "passed": true,
+      "status": "not_covered",
+      "grade": "none",
+      "error": null,
+      "answer": "This is not covered in your library.",
+      "metrics": {
+        "errored": 0.0,
+        "abstained": 1.0
+      },
+      "judge": null,
+      "reranked": [
+        {
+          "chunk_id": "99cad41b-b2b8-4701-bc43-5ae69bb59350",
+          "book": "Introduction to Data Science",
+          "chapter": "10 Statistical Natural Language Processing for Sentiment Analysis",
+          "section": "10.5 Conclusions",
+          "page_start": 207,
+          "page_end": 208
+        },
+        {
+          "chunk_id": "2657258a-d045-4cf8-b8a4-c9c210e4d08a",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2.3 Taxonomies of Clustering Techniques",
+          "page_start": 135,
+          "page_end": 136
+        },
+        {
+          "chunk_id": "94a2dab1-9905-47f1-af5c-f59130c845f7",
+          "book": "Introduction to Data Science",
+          "chapter": "5 Supervised Learning",
+          "section": "5.10 Conclusion",
+          "page_start": 108,
+          "page_end": 109
+        },
+        {
+          "chunk_id": "7562ebcb-f5f3-42e0-aae1-1c45382b6651",
+          "book": "Introduction to Data Science",
+          "chapter": "5 Supervised Learning",
+          "section": "5.3 First Steps",
+          "page_start": 88,
+          "page_end": 89
+        },
+        {
+          "chunk_id": "12190b4c-3b25-49a5-9fe7-1db6eda021a8",
+          "book": "Introduction to Data Science",
+          "chapter": "5 Supervised Learning",
+          "section": "5.7.1 Generalities Concerning Learning Models",
+          "page_start": 99,
+          "page_end": 100
+        }
+      ],
+      "cited": [],
+      "candidates": [
+        {
+          "chunk_id": "94a2dab1-9905-47f1-af5c-f59130c845f7",
+          "book": "Introduction to Data Science",
+          "chapter": "5 Supervised Learning",
+          "section": "5.10 Conclusion",
+          "page_start": 108,
+          "page_end": 109
+        },
+        {
+          "chunk_id": "7562ebcb-f5f3-42e0-aae1-1c45382b6651",
+          "book": "Introduction to Data Science",
+          "chapter": "5 Supervised Learning",
+          "section": "5.3 First Steps",
+          "page_start": 88,
+          "page_end": 89
+        },
+        {
+          "chunk_id": "438e5763-309b-48c0-a595-267df0637b6b",
+          "book": "Introduction to Data Science",
+          "chapter": "5 Supervised Learning",
+          "section": "5.1 Introduction",
+          "page_start": 80,
+          "page_end": 81
+        },
+        {
+          "chunk_id": "c7c379a8-0146-4096-b9f3-21255d87929d",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.1 Introduction",
+          "page_start": 154,
+          "page_end": 154
+        },
+        {
+          "chunk_id": "8e232cdb-dd25-48d2-97f3-ba599b2cec4c",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.5 Ego-Networks",
+          "page_start": 173,
+          "page_end": 174
+        },
+        {
+          "chunk_id": "a2f2f310-e271-4796-8f64-c38ec4f628e9",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.5 Ego-Networks",
+          "page_start": 172,
+          "page_end": 173
+        },
+        {
+          "chunk_id": "6c71079d-91fa-43a0-abb9-d769e30e1085",
+          "book": "Introduction to Data Science",
+          "chapter": "5 Supervised Learning",
+          "section": "5.5 Learning Curves",
+          "page_start": 92,
+          "page_end": 94
+        },
+        {
+          "chunk_id": "12cfa241-0c37-41f5-85b3-5730d9513518",
+          "book": "Introduction to Data Science",
+          "chapter": "5 Supervised Learning",
+          "section": "5.3 First Steps",
+          "page_start": 82,
+          "page_end": 82
+        },
+        {
+          "chunk_id": "78b010f4-17fa-4f1a-8ae4-a1247c7e4a2e",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.5 Ego-Networks",
+          "page_start": 171,
+          "page_end": 172
+        },
+        {
+          "chunk_id": "c90579bd-460c-4a87-85f7-ef7d73d1ce89",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.5 Ego-Networks",
+          "page_start": 171,
+          "page_end": 172
+        },
+        {
+          "chunk_id": "12190b4c-3b25-49a5-9fe7-1db6eda021a8",
+          "book": "Introduction to Data Science",
+          "chapter": "5 Supervised Learning",
+          "section": "5.7.1 Generalities Concerning Learning Models",
+          "page_start": 99,
+          "page_end": 100
+        },
+        {
+          "chunk_id": "8e97182a-4ecf-44d3-a76b-d83cb3c9f13a",
+          "book": "Introduction to Data Science",
+          "chapter": "5 Supervised Learning",
+          "section": "5.6 Training, Validation and Test",
+          "page_start": 96,
+          "page_end": 97
+        },
+        {
+          "chunk_id": "99cad41b-b2b8-4701-bc43-5ae69bb59350",
+          "book": "Introduction to Data Science",
+          "chapter": "10 Statistical Natural Language Processing for Sentiment Analysis",
+          "section": "10.5 Conclusions",
+          "page_start": 207,
+          "page_end": 208
+        },
+        {
+          "chunk_id": "f7dcde66-5531-482a-bf0c-f4fcda42d264",
+          "book": "Introduction to Data Science",
+          "chapter": "10 Statistical Natural Language Processing for Sentiment Analysis",
+          "section": "10.4 Practical Cases",
+          "page_start": 204,
+          "page_end": 205
+        },
+        {
+          "chunk_id": "0c4e6628-85c3-478d-ac81-bd3d2580dcfb",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.3 Social Network Analysis",
+          "page_start": 156,
+          "page_end": 156
+        },
+        {
+          "chunk_id": "ebcc6bc2-c7a3-42a0-8a6c-514297011526",
+          "book": "Introduction to Data Science",
+          "chapter": "5 Supervised Learning",
+          "section": "5.7.1 Generalities Concerning Learning Models",
+          "page_start": 100,
+          "page_end": 100
+        },
+        {
+          "chunk_id": "2280efcb-c643-4853-9208-f430921ff18c",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.4 Conclusions",
+          "page_start": 152,
+          "page_end": 152
+        },
+        {
+          "chunk_id": "9d88d9e5-62be-4dc0-987d-241f57737ae3",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.3.2 Practical Case: Facebook Dataset",
+          "page_start": 157,
+          "page_end": 157
+        },
+        {
+          "chunk_id": "2657258a-d045-4cf8-b8a4-c9c210e4d08a",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2.3 Taxonomies of Clustering Techniques",
+          "page_start": 135,
+          "page_end": 136
+        },
+        {
+          "chunk_id": "05d45d42-abee-44c3-b559-6fa267a734a8",
+          "book": "Introduction to Data Science",
+          "chapter": "6 Regression Analysis",
+          "section": "6.1 Introduction",
+          "page_start": 110,
+          "page_end": 111
+        }
+      ],
+      "latency_ms": {
+        "history": 1271.4,
+        "rewrite": 0.0,
+        "embed": 78.0,
+        "index_version": 919.8,
+        "retrieve": 911.6,
+        "rerank": 16655.4,
+        "grade": 1837.7,
+        "total": 22269.7
+      }
+    },
+    {
+      "id": "oos-02",
+      "question": "How do I deploy a Django application on Kubernetes?",
+      "tags": [
+        "seed",
+        "out-of-scope",
+        "smoke"
+      ],
+      "answerable": false,
+      "passed": true,
+      "status": "not_covered",
+      "grade": "none",
+      "error": null,
+      "answer": "This is not covered in your library.",
+      "metrics": {
+        "errored": 0.0,
+        "abstained": 1.0
+      },
+      "judge": null,
+      "reranked": [
+        {
+          "chunk_id": "cf96bf2f-f50e-4422-917b-6d15bfa7df10",
+          "book": "The Ultimate Django Guide",
+          "chapter": "9. Django Templates",
+          "section": "Working with Static Files",
+          "page_start": 147,
+          "page_end": 148
+        },
+        {
+          "chunk_id": "99898fd6-58a7-4657-b704-c08eae2a6e8a",
+          "book": "The Ultimate Django Guide",
+          "chapter": "1. Introduction to Django",
+          "section": "Real-World Applications Built with Django",
+          "page_start": 22,
+          "page_end": 24
+        },
+        {
+          "chunk_id": "62a6f0f9-099f-46da-b6d2-e87eb913dfef",
+          "book": "The Ultimate Django Guide",
+          "chapter": "3. Creating Your First Django Project",
+          "section": "Understanding the Project Structure",
+          "page_start": 36,
+          "page_end": 38
+        },
+        {
+          "chunk_id": "ee3881ab-25db-4898-a2e7-aebc13b04934",
+          "book": "The Ultimate Django Guide",
+          "chapter": "5. Django Project Configuration",
+          "section": "The settings.py File Explained",
+          "page_start": 57,
+          "page_end": 59
+        },
+        {
+          "chunk_id": "7281695b-6614-4bae-a897-47640f661aa4",
+          "book": "The Ultimate Django Guide",
+          "chapter": "3. Creating Your First Django Project",
+          "section": "Overview of Django’s Admin Interface",
+          "page_start": 42,
+          "page_end": 44
+        }
+      ],
+      "cited": [],
+      "candidates": [
+        {
+          "chunk_id": "99898fd6-58a7-4657-b704-c08eae2a6e8a",
+          "book": "The Ultimate Django Guide",
+          "chapter": "1. Introduction to Django",
+          "section": "Real-World Applications Built with Django",
+          "page_start": 22,
+          "page_end": 24
+        },
+        {
+          "chunk_id": "bb431745-76e7-4abc-8666-80a61743a3e2",
+          "book": "The Ultimate Django Guide",
+          "chapter": "2. Setting Up the Development Environment",
+          "section": "Installing Django",
+          "page_start": 28,
+          "page_end": 29
+        },
+        {
+          "chunk_id": "7495bab8-8854-4c1e-960d-9422fd1076ae",
+          "book": "The Ultimate Django Guide",
+          "chapter": "6. Django Models",
+          "section": "Defining Models with Django",
+          "page_start": 72,
+          "page_end": 75
+        },
+        {
+          "chunk_id": "0ae30394-30b9-4652-afa8-39b6a944072e",
+          "book": "The Ultimate Django Guide",
+          "chapter": "12. User Authentication and Authorization",
+          "section": "Implementing User Authorization",
+          "page_start": 240,
+          "page_end": 243
+        },
+        {
+          "chunk_id": "33976f7a-c0f4-45dd-9fa6-18b13dfd89ba",
+          "book": "The Ultimate Django Guide",
+          "chapter": "1. Introduction to Django",
+          "section": "1. Introduction to Django",
+          "page_start": 13,
+          "page_end": 14
+        },
+        {
+          "chunk_id": "62a6f0f9-099f-46da-b6d2-e87eb913dfef",
+          "book": "The Ultimate Django Guide",
+          "chapter": "3. Creating Your First Django Project",
+          "section": "Understanding the Project Structure",
+          "page_start": 36,
+          "page_end": 38
+        },
+        {
+          "chunk_id": "ee3881ab-25db-4898-a2e7-aebc13b04934",
+          "book": "The Ultimate Django Guide",
+          "chapter": "5. Django Project Configuration",
+          "section": "The settings.py File Explained",
+          "page_start": 57,
+          "page_end": 59
+        },
+        {
+          "chunk_id": "cf96bf2f-f50e-4422-917b-6d15bfa7df10",
+          "book": "The Ultimate Django Guide",
+          "chapter": "9. Django Templates",
+          "section": "Working with Static Files",
+          "page_start": 147,
+          "page_end": 148
+        },
+        {
+          "chunk_id": "7281695b-6614-4bae-a897-47640f661aa4",
+          "book": "The Ultimate Django Guide",
+          "chapter": "3. Creating Your First Django Project",
+          "section": "Overview of Django’s Admin Interface",
+          "page_start": 42,
+          "page_end": 44
+        },
+        {
+          "chunk_id": "37fd9598-50eb-4d38-af51-c4cc94392b81",
+          "book": "The Ultimate Django Guide",
+          "chapter": "3. Creating Your First Django Project",
+          "section": "Starting a New Django Project",
+          "page_start": 34,
+          "page_end": 36
+        },
+        {
+          "chunk_id": "d8c2e5e6-b462-40f0-8f41-1c45dbefed35",
+          "book": "The Ultimate Django Guide",
+          "chapter": "7. Django Admin Interface",
+          "section": "Security Considerations",
+          "page_start": 102,
+          "page_end": 104
+        },
+        {
+          "chunk_id": "e36bfd51-4284-4ab4-bce1-8f2a12f6c657",
+          "book": "The Ultimate Django Guide",
+          "chapter": "Terms and Definitions",
+          "section": "Terms and Definitions",
+          "page_start": 6,
+          "page_end": 7
+        },
+        {
+          "chunk_id": "09f911f8-85ea-4ccb-9aab-9fa4b7b6f30e",
+          "book": "The Ultimate Django Guide",
+          "chapter": "5. Django Project Configuration",
+          "section": "5. Django Project Configuration",
+          "page_start": 57,
+          "page_end": 57
+        },
+        {
+          "chunk_id": "f013a79c-7289-4aae-b922-d74a35d49b61",
+          "book": "The Ultimate Django Guide",
+          "chapter": "2. Setting Up the Development Environment",
+          "section": "Installing Python",
+          "page_start": 26,
+          "page_end": 28
+        },
+        {
+          "chunk_id": "291b7fa3-a052-4a9a-9c87-7bb8fd2075e0",
+          "book": "The Ultimate Django Guide",
+          "chapter": "7. Django Admin Interface",
+          "section": "Managing Models in the Admin",
+          "page_start": 96,
+          "page_end": 98
+        },
+        {
+          "chunk_id": "e2ea120d-e934-44b2-abfc-50ecdfc4c973",
+          "book": "The Ultimate Django Guide",
+          "chapter": "7. Django Admin Interface",
+          "section": "Security Considerations",
+          "page_start": 104,
+          "page_end": 104
+        },
+        {
+          "chunk_id": "8ad2aef8-ce73-4246-9817-2d40066cde49",
+          "book": "The Ultimate Django Guide",
+          "chapter": "8. Django Views",
+          "section": "Function-Based Views (FBVs)",
+          "page_start": 110,
+          "page_end": 111
+        },
+        {
+          "chunk_id": "9fa2304e-1845-4351-a938-4a9b8b0c36f6",
+          "book": "The Ultimate Django Guide",
+          "chapter": "9. Django Templates",
+          "section": "Working with Static Files",
+          "page_start": 143,
+          "page_end": 146
+        },
+        {
+          "chunk_id": "44606eb2-4e4f-4945-8bc6-7d6e6e54ab96",
+          "book": "The Ultimate Django Guide",
+          "chapter": "Preface",
+          "section": "Preface",
+          "page_start": 11,
+          "page_end": 12
+        },
+        {
+          "chunk_id": "6c68f627-cc1c-48d1-b0b8-070e3659b9b1",
+          "book": "The Ultimate Django Guide",
+          "chapter": "10. Django Forms",
+          "section": "Advanced Form Processing Techniques",
+          "page_start": 180,
+          "page_end": 182
+        }
+      ],
+      "latency_ms": {
+        "history": 292.0,
+        "rewrite": 0.0,
+        "embed": 119.6,
+        "index_version": 290.4,
+        "retrieve": 968.1,
+        "rerank": 17048.5,
+        "grade": 5634.5,
+        "total": 24907.3
+      }
+    },
+    {
+      "id": "oos-03",
+      "question": "How does XGBoost differ from classic gradient boosting?",
+      "tags": [
+        "seed",
+        "out-of-scope"
+      ],
+      "answerable": false,
+      "passed": true,
+      "status": "not_covered",
+      "grade": "none",
+      "error": null,
+      "answer": "This is not covered in your library.",
+      "metrics": {
+        "errored": 0.0,
+        "abstained": 1.0
+      },
+      "judge": null,
+      "reranked": [
+        {
+          "chunk_id": "17cbb55d-36eb-4ff5-91dc-af66d02d3dc4",
+          "book": "Introduction to Data Science",
+          "chapter": "5 Supervised Learning",
+          "section": "5.3 First Steps",
+          "page_start": 89,
+          "page_end": 90
+        },
+        {
+          "chunk_id": "12cfa241-0c37-41f5-85b3-5730d9513518",
+          "book": "Introduction to Data Science",
+          "chapter": "5 Supervised Learning",
+          "section": "5.3 First Steps",
+          "page_start": 82,
+          "page_end": 82
+        },
+        {
+          "chunk_id": "6c2ab828-5da5-4fc3-a48b-927a913f47b7",
+          "book": "Introduction to Data Science",
+          "chapter": "5 Supervised Learning",
+          "section": "5.3 First Steps",
+          "page_start": 89,
+          "page_end": 90
+        },
+        {
+          "chunk_id": "9c1377d9-d2ed-4ed0-abf2-35ab84fe3427",
+          "book": "Introduction to Data Science",
+          "chapter": "5 Supervised Learning",
+          "section": "5.8 Ending the Learning Process",
+          "page_start": 104,
+          "page_end": 105
+        },
+        {
+          "chunk_id": "ebcc6bc2-c7a3-42a0-8a6c-514297011526",
+          "book": "Introduction to Data Science",
+          "chapter": "5 Supervised Learning",
+          "section": "5.7.1 Generalities Concerning Learning Models",
+          "page_start": 100,
+          "page_end": 100
+        }
+      ],
+      "cited": [],
+      "candidates": [
+        {
+          "chunk_id": "12cfa241-0c37-41f5-85b3-5730d9513518",
+          "book": "Introduction to Data Science",
+          "chapter": "5 Supervised Learning",
+          "section": "5.3 First Steps",
+          "page_start": 82,
+          "page_end": 82
+        },
+        {
+          "chunk_id": "a5fa1b4a-932b-4391-90f2-a15f4ac37038",
+          "book": "Introduction to Data Science",
+          "chapter": "5 Supervised Learning",
+          "section": "5.5 Learning Curves",
+          "page_start": 94,
+          "page_end": 95
+        },
+        {
+          "chunk_id": "438e5763-309b-48c0-a595-267df0637b6b",
+          "book": "Introduction to Data Science",
+          "chapter": "5 Supervised Learning",
+          "section": "5.1 Introduction",
+          "page_start": 80,
+          "page_end": 81
+        },
+        {
+          "chunk_id": "6fd3bfac-ab30-47cc-b154-82d737c7967f",
+          "book": "Introduction to Data Science",
+          "chapter": "11 Parallel Computing",
+          "section": "11.2.2 Connecting to the Cluster (The Engines)",
+          "page_start": 212,
+          "page_end": 213
+        },
+        {
+          "chunk_id": "05d45d42-abee-44c3-b559-6fa267a734a8",
+          "book": "Introduction to Data Science",
+          "chapter": "6 Regression Analysis",
+          "section": "6.1 Introduction",
+          "page_start": 110,
+          "page_end": 111
+        },
+        {
+          "chunk_id": "9c1377d9-d2ed-4ed0-abf2-35ab84fe3427",
+          "book": "Introduction to Data Science",
+          "chapter": "5 Supervised Learning",
+          "section": "5.8 Ending the Learning Process",
+          "page_start": 104,
+          "page_end": 105
+        },
+        {
+          "chunk_id": "ebcc6bc2-c7a3-42a0-8a6c-514297011526",
+          "book": "Introduction to Data Science",
+          "chapter": "5 Supervised Learning",
+          "section": "5.7.1 Generalities Concerning Learning Models",
+          "page_start": 100,
+          "page_end": 100
+        },
+        {
+          "chunk_id": "925f108f-5c75-4aba-bea7-beb4c13a4d83",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2.3 Taxonomies of Clustering Techniques",
+          "page_start": 143,
+          "page_end": 144
+        },
+        {
+          "chunk_id": "c7c379a8-0146-4096-b9f3-21255d87929d",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.1 Introduction",
+          "page_start": 154,
+          "page_end": 154
+        },
+        {
+          "chunk_id": "8e232cdb-dd25-48d2-97f3-ba599b2cec4c",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.5 Ego-Networks",
+          "page_start": 173,
+          "page_end": 174
+        },
+        {
+          "chunk_id": "17cbb55d-36eb-4ff5-91dc-af66d02d3dc4",
+          "book": "Introduction to Data Science",
+          "chapter": "5 Supervised Learning",
+          "section": "5.3 First Steps",
+          "page_start": 89,
+          "page_end": 90
+        },
+        {
+          "chunk_id": "c8e3cefb-1ef3-405e-8fe5-6ec4e4f3d90a",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2.2 What Constitutes a Good Clustering? Defining Metrics to Measure Clustering Quality",
+          "page_start": 132,
+          "page_end": 133
+        },
+        {
+          "chunk_id": "1efc2294-ad0d-480c-b90e-f02b78292a62",
+          "book": "Introduction to Data Science",
+          "chapter": "5 Supervised Learning",
+          "section": "5.3 First Steps",
+          "page_start": 84,
+          "page_end": 85
+        },
+        {
+          "chunk_id": "8f82b4e1-c5c1-4b24-86ef-91fcf618de22",
+          "book": "The Ultimate Django Guide",
+          "chapter": "11. Working with Databases",
+          "section": "Advanced Query Techniques",
+          "page_start": 207,
+          "page_end": 209
+        },
+        {
+          "chunk_id": "94a2dab1-9905-47f1-af5c-f59130c845f7",
+          "book": "Introduction to Data Science",
+          "chapter": "5 Supervised Learning",
+          "section": "5.10 Conclusion",
+          "page_start": 108,
+          "page_end": 109
+        },
+        {
+          "chunk_id": "283fd6a1-5c49-4613-a60f-d08c1e1dff6f",
+          "book": "Introduction to Data Science",
+          "chapter": "5 Supervised Learning",
+          "section": "5.6 Training, Validation and Test",
+          "page_start": 97,
+          "page_end": 98
+        },
+        {
+          "chunk_id": "a2f2f310-e271-4796-8f64-c38ec4f628e9",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.5 Ego-Networks",
+          "page_start": 172,
+          "page_end": 173
+        },
+        {
+          "chunk_id": "bde96bc5-5214-4ea9-9758-6262a91e3a7d",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.3 Case Study",
+          "page_start": 147,
+          "page_end": 149
+        },
+        {
+          "chunk_id": "6c2ab828-5da5-4fc3-a48b-927a913f47b7",
+          "book": "Introduction to Data Science",
+          "chapter": "5 Supervised Learning",
+          "section": "5.3 First Steps",
+          "page_start": 89,
+          "page_end": 90
+        },
+        {
+          "chunk_id": "39a0fcf9-4425-4a55-9d7f-c841abec38ec",
+          "book": "Introduction to Data Science",
+          "chapter": "5 Supervised Learning",
+          "section": "5.7.3 Random Forest",
+          "page_start": 103,
+          "page_end": 104
+        }
+      ],
+      "latency_ms": {
+        "history": 274.5,
+        "rewrite": 0.0,
+        "embed": 119.2,
+        "index_version": 286.4,
+        "retrieve": 1749.4,
+        "rerank": 18596.5,
+        "grade": 0.2,
+        "total": 23864.3
+      }
+    },
+    {
+      "id": "oos-04",
+      "question": "How do I build a GraphQL API with Django?",
+      "tags": [
+        "seed",
+        "out-of-scope"
+      ],
+      "answerable": false,
+      "passed": true,
+      "status": "not_covered",
+      "grade": "none",
+      "error": null,
+      "answer": "This is not covered in your library.",
+      "metrics": {
+        "errored": 0.0,
+        "abstained": 1.0
+      },
+      "judge": null,
+      "reranked": [
+        {
+          "chunk_id": "1dae4f81-cd3f-41fe-b07f-bf6d2c31f0a4",
+          "book": "The Ultimate Django Guide",
+          "chapter": "11. Working with Databases",
+          "section": "Connecting Django to Different Databases",
+          "page_start": 187,
+          "page_end": 188
+        },
+        {
+          "chunk_id": "0ae30394-30b9-4652-afa8-39b6a944072e",
+          "book": "The Ultimate Django Guide",
+          "chapter": "12. User Authentication and Authorization",
+          "section": "Implementing User Authorization",
+          "page_start": 240,
+          "page_end": 243
+        },
+        {
+          "chunk_id": "ef994a27-81e6-49d0-a6b5-f88d4e1f3562",
+          "book": "The Ultimate Django Guide",
+          "chapter": "12. User Authentication and Authorization",
+          "section": "Implementing User Authorization",
+          "page_start": 243,
+          "page_end": 243
+        },
+        {
+          "chunk_id": "99898fd6-58a7-4657-b704-c08eae2a6e8a",
+          "book": "The Ultimate Django Guide",
+          "chapter": "1. Introduction to Django",
+          "section": "Real-World Applications Built with Django",
+          "page_start": 22,
+          "page_end": 24
+        },
+        {
+          "chunk_id": "e36bfd51-4284-4ab4-bce1-8f2a12f6c657",
+          "book": "The Ultimate Django Guide",
+          "chapter": "Terms and Definitions",
+          "section": "Terms and Definitions",
+          "page_start": 6,
+          "page_end": 7
+        }
+      ],
+      "cited": [],
+      "candidates": [
+        {
+          "chunk_id": "8f23c269-8ea7-4832-9700-32ee44a422b3",
+          "book": "The Ultimate Django Guide",
+          "chapter": "12. User Authentication and Authorization",
+          "section": "References",
+          "page_start": 246,
+          "page_end": 247
+        },
+        {
+          "chunk_id": "0ae30394-30b9-4652-afa8-39b6a944072e",
+          "book": "The Ultimate Django Guide",
+          "chapter": "12. User Authentication and Authorization",
+          "section": "Implementing User Authorization",
+          "page_start": 240,
+          "page_end": 243
+        },
+        {
+          "chunk_id": "44606eb2-4e4f-4945-8bc6-7d6e6e54ab96",
+          "book": "The Ultimate Django Guide",
+          "chapter": "Preface",
+          "section": "Preface",
+          "page_start": 11,
+          "page_end": 12
+        },
+        {
+          "chunk_id": "5ac30439-873a-4eeb-9e10-5ce5440d8ff0",
+          "book": "The Ultimate Django Guide",
+          "chapter": "Terms and Definitions",
+          "section": "Terms and Definitions",
+          "page_start": 7,
+          "page_end": 9
+        },
+        {
+          "chunk_id": "99898fd6-58a7-4657-b704-c08eae2a6e8a",
+          "book": "The Ultimate Django Guide",
+          "chapter": "1. Introduction to Django",
+          "section": "Real-World Applications Built with Django",
+          "page_start": 22,
+          "page_end": 24
+        },
+        {
+          "chunk_id": "de918002-1e06-4259-bd6d-d9fb8b07c8c2",
+          "book": "The Ultimate Django Guide",
+          "chapter": "4. Understanding Django’s MVC (MTV) Architecture",
+          "section": "How Django Implements MTV",
+          "page_start": 51,
+          "page_end": 53
+        },
+        {
+          "chunk_id": "8ad2aef8-ce73-4246-9817-2d40066cde49",
+          "book": "The Ultimate Django Guide",
+          "chapter": "8. Django Views",
+          "section": "Function-Based Views (FBVs)",
+          "page_start": 110,
+          "page_end": 111
+        },
+        {
+          "chunk_id": "f04c2f58-6b88-4d3a-93c5-86cdf45f2e85",
+          "book": "The Ultimate Django Guide",
+          "chapter": "1. Introduction to Django",
+          "section": "History and Evolution of Django",
+          "page_start": 15,
+          "page_end": 17
+        },
+        {
+          "chunk_id": "b7a40729-66be-4f5b-9f3d-e766885fd0b4",
+          "book": "The Ultimate Django Guide",
+          "chapter": "8. Django Views",
+          "section": "Function-Based Views (FBVs)",
+          "page_start": 108,
+          "page_end": 110
+        },
+        {
+          "chunk_id": "f1637830-7e1c-4e65-b524-eb421ab5e818",
+          "book": "Introduction to Data Science",
+          "chapter": "9 Recommender Systems",
+          "section": "9.2 How Do Recommender Systems Work?",
+          "page_start": 178,
+          "page_end": 178
+        },
+        {
+          "chunk_id": "ef994a27-81e6-49d0-a6b5-f88d4e1f3562",
+          "book": "The Ultimate Django Guide",
+          "chapter": "12. User Authentication and Authorization",
+          "section": "Implementing User Authorization",
+          "page_start": 243,
+          "page_end": 243
+        },
+        {
+          "chunk_id": "6c68f627-cc1c-48d1-b0b8-070e3659b9b1",
+          "book": "The Ultimate Django Guide",
+          "chapter": "10. Django Forms",
+          "section": "Advanced Form Processing Techniques",
+          "page_start": 180,
+          "page_end": 182
+        },
+        {
+          "chunk_id": "bb431745-76e7-4abc-8666-80a61743a3e2",
+          "book": "The Ultimate Django Guide",
+          "chapter": "2. Setting Up the Development Environment",
+          "section": "Installing Django",
+          "page_start": 28,
+          "page_end": 29
+        },
+        {
+          "chunk_id": "37fd9598-50eb-4d38-af51-c4cc94392b81",
+          "book": "The Ultimate Django Guide",
+          "chapter": "3. Creating Your First Django Project",
+          "section": "Starting a New Django Project",
+          "page_start": 34,
+          "page_end": 36
+        },
+        {
+          "chunk_id": "33976f7a-c0f4-45dd-9fa6-18b13dfd89ba",
+          "book": "The Ultimate Django Guide",
+          "chapter": "1. Introduction to Django",
+          "section": "1. Introduction to Django",
+          "page_start": 13,
+          "page_end": 14
+        },
+        {
+          "chunk_id": "cdd245a4-46d3-4f13-9d10-acd4ff185dbb",
+          "book": "The Ultimate Django Guide",
+          "chapter": "8. Django Views",
+          "section": "Introduction to Views",
+          "page_start": 107,
+          "page_end": 108
+        },
+        {
+          "chunk_id": "05d45d42-abee-44c3-b559-6fa267a734a8",
+          "book": "Introduction to Data Science",
+          "chapter": "6 Regression Analysis",
+          "section": "6.1 Introduction",
+          "page_start": 110,
+          "page_end": 111
+        },
+        {
+          "chunk_id": "1dae4f81-cd3f-41fe-b07f-bf6d2c31f0a4",
+          "book": "The Ultimate Django Guide",
+          "chapter": "11. Working with Databases",
+          "section": "Connecting Django to Different Databases",
+          "page_start": 187,
+          "page_end": 188
+        },
+        {
+          "chunk_id": "e36bfd51-4284-4ab4-bce1-8f2a12f6c657",
+          "book": "The Ultimate Django Guide",
+          "chapter": "Terms and Definitions",
+          "section": "Terms and Definitions",
+          "page_start": 6,
+          "page_end": 7
+        },
+        {
+          "chunk_id": "fc779ef4-21a6-4101-ad3c-bbf951554d4f",
+          "book": "The Ultimate Django Guide",
+          "chapter": "8. Django Views",
+          "section": "Function-Based Views (FBVs)",
+          "page_start": 111,
+          "page_end": 112
+        }
+      ],
+      "latency_ms": {
+        "history": 279.0,
+        "rewrite": 0.0,
+        "embed": 93.9,
+        "index_version": 296.1,
+        "retrieve": 1056.6,
+        "rerank": 17100.0,
+        "grade": 2379.1,
+        "total": 22121.8
+      }
+    },
+    {
+      "id": "oos-05",
+      "question": "How do I containerize a Django app with Docker?",
+      "tags": [
+        "seed",
+        "out-of-scope"
+      ],
+      "answerable": false,
+      "passed": true,
+      "status": "not_covered",
+      "grade": "none",
+      "error": null,
+      "answer": "This is not covered in your library.",
+      "metrics": {
+        "errored": 0.0,
+        "abstained": 1.0
+      },
+      "judge": null,
+      "reranked": [
+        {
+          "chunk_id": "cf96bf2f-f50e-4422-917b-6d15bfa7df10",
+          "book": "The Ultimate Django Guide",
+          "chapter": "9. Django Templates",
+          "section": "Working with Static Files",
+          "page_start": 147,
+          "page_end": 148
+        },
+        {
+          "chunk_id": "f89bb46a-bba2-45f5-b0b1-090f0cda8297",
+          "book": "The Ultimate Django Guide",
+          "chapter": "12. User Authentication and Authorization",
+          "section": "Setting Up User Authentication",
+          "page_start": 222,
+          "page_end": 224
+        },
+        {
+          "chunk_id": "9fa2304e-1845-4351-a938-4a9b8b0c36f6",
+          "book": "The Ultimate Django Guide",
+          "chapter": "9. Django Templates",
+          "section": "Working with Static Files",
+          "page_start": 143,
+          "page_end": 146
+        },
+        {
+          "chunk_id": "09f911f8-85ea-4ccb-9aab-9fa4b7b6f30e",
+          "book": "The Ultimate Django Guide",
+          "chapter": "5. Django Project Configuration",
+          "section": "5. Django Project Configuration",
+          "page_start": 57,
+          "page_end": 57
+        },
+        {
+          "chunk_id": "1dae4f81-cd3f-41fe-b07f-bf6d2c31f0a4",
+          "book": "The Ultimate Django Guide",
+          "chapter": "11. Working with Databases",
+          "section": "Connecting Django to Different Databases",
+          "page_start": 187,
+          "page_end": 188
+        }
+      ],
+      "cited": [],
+      "candidates": [
+        {
+          "chunk_id": "7495bab8-8854-4c1e-960d-9422fd1076ae",
+          "book": "The Ultimate Django Guide",
+          "chapter": "6. Django Models",
+          "section": "Defining Models with Django",
+          "page_start": 72,
+          "page_end": 75
+        },
+        {
+          "chunk_id": "cf96bf2f-f50e-4422-917b-6d15bfa7df10",
+          "book": "The Ultimate Django Guide",
+          "chapter": "9. Django Templates",
+          "section": "Working with Static Files",
+          "page_start": 147,
+          "page_end": 148
+        },
+        {
+          "chunk_id": "cdd245a4-46d3-4f13-9d10-acd4ff185dbb",
+          "book": "The Ultimate Django Guide",
+          "chapter": "8. Django Views",
+          "section": "Introduction to Views",
+          "page_start": 107,
+          "page_end": 108
+        },
+        {
+          "chunk_id": "bb431745-76e7-4abc-8666-80a61743a3e2",
+          "book": "The Ultimate Django Guide",
+          "chapter": "2. Setting Up the Development Environment",
+          "section": "Installing Django",
+          "page_start": 28,
+          "page_end": 29
+        },
+        {
+          "chunk_id": "de918002-1e06-4259-bd6d-d9fb8b07c8c2",
+          "book": "The Ultimate Django Guide",
+          "chapter": "4. Understanding Django’s MVC (MTV) Architecture",
+          "section": "How Django Implements MTV",
+          "page_start": 51,
+          "page_end": 53
+        },
+        {
+          "chunk_id": "9fa2304e-1845-4351-a938-4a9b8b0c36f6",
+          "book": "The Ultimate Django Guide",
+          "chapter": "9. Django Templates",
+          "section": "Working with Static Files",
+          "page_start": 143,
+          "page_end": 146
+        },
+        {
+          "chunk_id": "8ad2aef8-ce73-4246-9817-2d40066cde49",
+          "book": "The Ultimate Django Guide",
+          "chapter": "8. Django Views",
+          "section": "Function-Based Views (FBVs)",
+          "page_start": 110,
+          "page_end": 111
+        },
+        {
+          "chunk_id": "b7a40729-66be-4f5b-9f3d-e766885fd0b4",
+          "book": "The Ultimate Django Guide",
+          "chapter": "8. Django Views",
+          "section": "Function-Based Views (FBVs)",
+          "page_start": 108,
+          "page_end": 110
+        },
+        {
+          "chunk_id": "37fd9598-50eb-4d38-af51-c4cc94392b81",
+          "book": "The Ultimate Django Guide",
+          "chapter": "3. Creating Your First Django Project",
+          "section": "Starting a New Django Project",
+          "page_start": 34,
+          "page_end": 36
+        },
+        {
+          "chunk_id": "262ff0fd-a038-48fe-ac3f-f4f3ebec98da",
+          "book": "The Ultimate Django Guide",
+          "chapter": "9. Django Templates",
+          "section": "Introduction to Django Templates",
+          "page_start": 127,
+          "page_end": 129
+        },
+        {
+          "chunk_id": "09f911f8-85ea-4ccb-9aab-9fa4b7b6f30e",
+          "book": "The Ultimate Django Guide",
+          "chapter": "5. Django Project Configuration",
+          "section": "5. Django Project Configuration",
+          "page_start": 57,
+          "page_end": 57
+        },
+        {
+          "chunk_id": "4e97702d-e76a-4b7e-86a8-9719f0d967d8",
+          "book": "The Ultimate Django Guide",
+          "chapter": "12. User Authentication and Authorization",
+          "section": "Setting Up User Authentication",
+          "page_start": 220,
+          "page_end": 222
+        },
+        {
+          "chunk_id": "ef0d9b70-3cdb-45b6-9a9c-c1bbadadd16f",
+          "book": "The Ultimate Django Guide",
+          "chapter": "8. Django Views",
+          "section": "URL Routing and Views",
+          "page_start": 122,
+          "page_end": 124
+        },
+        {
+          "chunk_id": "33976f7a-c0f4-45dd-9fa6-18b13dfd89ba",
+          "book": "The Ultimate Django Guide",
+          "chapter": "1. Introduction to Django",
+          "section": "1. Introduction to Django",
+          "page_start": 13,
+          "page_end": 14
+        },
+        {
+          "chunk_id": "50384c1f-8177-48e0-bdcb-c54bdbdec888",
+          "book": "The Ultimate Django Guide",
+          "chapter": "5. Django Project Configuration",
+          "section": "Configuring URL Patterns",
+          "page_start": 66,
+          "page_end": 67
+        },
+        {
+          "chunk_id": "f89bb46a-bba2-45f5-b0b1-090f0cda8297",
+          "book": "The Ultimate Django Guide",
+          "chapter": "12. User Authentication and Authorization",
+          "section": "Setting Up User Authentication",
+          "page_start": 222,
+          "page_end": 224
+        },
+        {
+          "chunk_id": "0ae30394-30b9-4652-afa8-39b6a944072e",
+          "book": "The Ultimate Django Guide",
+          "chapter": "12. User Authentication and Authorization",
+          "section": "Implementing User Authorization",
+          "page_start": 240,
+          "page_end": 243
+        },
+        {
+          "chunk_id": "ac844768-a277-408d-ae78-4853e829c594",
+          "book": "Introduction to Data Science",
+          "chapter": "5 Supervised Learning",
+          "section": "5.1 Introduction",
+          "page_start": 81,
+          "page_end": 81
+        },
+        {
+          "chunk_id": "1dae4f81-cd3f-41fe-b07f-bf6d2c31f0a4",
+          "book": "The Ultimate Django Guide",
+          "chapter": "11. Working with Databases",
+          "section": "Connecting Django to Different Databases",
+          "page_start": 187,
+          "page_end": 188
+        },
+        {
+          "chunk_id": "62a6f0f9-099f-46da-b6d2-e87eb913dfef",
+          "book": "The Ultimate Django Guide",
+          "chapter": "3. Creating Your First Django Project",
+          "section": "Understanding the Project Structure",
+          "page_start": 36,
+          "page_end": 38
+        }
+      ],
+      "latency_ms": {
+        "history": 308.7,
+        "rewrite": 0.0,
+        "embed": 121.6,
+        "index_version": 304.9,
+        "retrieve": 1698.0,
+        "rerank": 17003.9,
+        "grade": 12316.5,
+        "total": 32372.6
+      }
+    }
+  ]
+}

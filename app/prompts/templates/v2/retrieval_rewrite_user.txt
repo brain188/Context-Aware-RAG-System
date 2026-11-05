@@ -1,0 +1,5 @@
+Question: $question
+
+Last search query: $query
+
+What the excerpts found were missing: $missing

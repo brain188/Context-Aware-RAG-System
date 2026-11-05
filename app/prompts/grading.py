@@ -1,28 +1,36 @@
-"""Retrieval-grading prompt: build it, and parse the model's verdict.
+"""Retrieval-grading prompt and the structured verdict the grader model fills.
 
-The grade drives rag_pipeline: correct → generate, ambiguous → retry wider,
-none → "not covered". The prompt text itself is versioned in templates/.
+The grade drives the retrieval stage: correct → generate, ambiguous → rewrite
+the search query and retrieve again, none → "not covered". Per-excerpt
+relevance is recorded for the query log and for checking the grader against
+hand labels. The prompt text itself is versioned in templates/.
 """
 
-import json
-import re
 from typing import Literal
 
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, Field
 
 from app.prompts import load_prompt
 
 Grade = Literal["correct", "ambiguous", "none"]
+Relevance = Literal["relevant", "partial", "irrelevant"]
 
-# The reply should be bare JSON, but tolerate prose or code fences around it.
-_JSON_OBJECT = re.compile(r"\{.*\}", re.DOTALL)
+
+class SourceRelevance(BaseModel):
+    """How much one numbered excerpt ([S<source>]) helps answer the question."""
+
+    source: int = Field(description="The excerpt's marker number: 1 for [S1], 2 for [S2].")
+    relevance: Relevance
 
 
 class GradeReply(BaseModel):
     """The grader model's structured verdict."""
 
     grade: Grade
-    reason: str = ""
+    reason: str = Field(
+        default="", description="One short sentence; for ambiguous, what is missing."
+    )
+    sources: list[SourceRelevance] = Field(default_factory=list)
 
 
 def build_grading_prompt(question: str, sources: str, version: str) -> tuple[str, str]:
@@ -30,14 +38,3 @@ def build_grading_prompt(question: str, sources: str, version: str) -> tuple[str
     system = load_prompt("grading_system", version).render()
     user = load_prompt("grading_user", version).render(question=question, sources=sources)
     return system, user
-
-
-def parse_grade_reply(text: str) -> GradeReply | None:
-    """Extract the verdict from the model's reply, or None if it is not valid JSON of that shape."""
-    match = _JSON_OBJECT.search(text)
-    if match is None:
-        return None
-    try:
-        return GradeReply.model_validate(json.loads(match.group(0)))
-    except (json.JSONDecodeError, ValidationError):
-        return None

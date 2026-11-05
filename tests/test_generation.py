@@ -1,4 +1,4 @@
-"""Pure logic of Phase 3: prompts, grading parse, citations, guardrails, query routing."""
+"""Pure logic of Phase 3: prompts, grading schema, citations, guardrails, query routing."""
 
 from pathlib import Path
 
@@ -9,7 +9,7 @@ from app.guardrails.input_guard import InputRejectedError, screen_question
 from app.guardrails.output_guard import GroundingGate
 from app.models import ScoredChunk
 from app.prompts import NOT_COVERED_MESSAGE, PromptNotFoundError, load_prompt
-from app.prompts.grading import build_grading_prompt, parse_grade_reply
+from app.prompts.grading import GradeReply, build_grading_prompt
 from app.services.citation import (
     cited_indices,
     citation_label,
@@ -53,40 +53,47 @@ class TestPrompts:
         with pytest.raises(ValueError, match="needs a value"):
             load_prompt("answer_user", "v1").render(question="q")
 
-    def test_v1_has_every_template_the_app_loads(self) -> None:
-        templates_dir = Path(app.prompts.__file__).parent / "templates" / "v1"
+    _CORE = {
+        "answer_system",
+        "answer_user",
+        "grading_system",
+        "grading_user",
+        "rewrite_system",
+        "rewrite_user",
+        "low_confidence_note",
+    }
+
+    @pytest.mark.parametrize(
+        "version, extra",
+        [("v1", set()), ("v2", {"retrieval_rewrite_system", "retrieval_rewrite_user"})],
+    )
+    def test_each_version_has_every_template_the_app_loads(
+        self, version: str, extra: set[str]
+    ) -> None:
+        templates_dir = Path(app.prompts.__file__).parent / "templates" / version
         names = {p.stem for p in templates_dir.glob("*.txt")}
-        assert names >= {
-            "answer_system",
-            "answer_user",
-            "grading_system",
-            "grading_user",
-            "rewrite_system",
-            "rewrite_user",
-            "low_confidence_note",
-        }
+        assert names >= self._CORE | extra
+
+    def test_default_prompt_version_exists(self, tmp_path: Path) -> None:
+        version = make_settings(tmp_path).prompt_version
+        assert load_prompt("grading_system", version).text
 
 
 class TestGradingPrompt:
     def test_build_includes_question_and_sources(self) -> None:
-        system, user = build_grading_prompt("What is KL?", "[S1] text", "v1")
-        assert "correct" in system and "ambiguous" in system
+        system, user = build_grading_prompt("What is KL?", "[S1] text", "v2")
+        assert "correct" in system and "ambiguous" in system and "relevance" in system
         assert "What is KL?" in user and "[S1] text" in user
 
-    @pytest.mark.parametrize(
-        "reply",
-        [
-            '{"grade": "correct", "reason": "direct"}',
-            'Sure:\n```json\n{"grade": "correct", "reason": "direct"}\n```',
-        ],
-    )
-    def test_parses_bare_or_wrapped_json(self, reply: str) -> None:
-        verdict = parse_grade_reply(reply)
-        assert verdict is not None and verdict.grade == "correct"
+    def test_reply_schema_carries_per_excerpt_relevance(self) -> None:
+        reply = GradeReply.model_validate_json(
+            '{"grade": "correct", "reason": "r", "sources": [{"source": 1, "relevance": "partial"}]}'
+        )
+        assert reply.sources[0].relevance == "partial"
 
-    @pytest.mark.parametrize("reply", ["correct", '{"grade": "maybe"}', "{not json}", ""])
-    def test_rejects_malformed_replies(self, reply: str) -> None:
-        assert parse_grade_reply(reply) is None
+    def test_reply_without_sources_is_still_valid(self) -> None:
+        """v1 prompts ask only for grade and reason."""
+        assert GradeReply.model_validate_json('{"grade": "none"}').sources == []
 
 
 # ---------------------------------------------------------------------------

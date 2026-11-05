@@ -1,0 +1,4 @@
+Conversation so far:
+$history
+
+New question: $question

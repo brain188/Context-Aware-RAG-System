@@ -14,6 +14,7 @@ from app.errors import IngestRequestError
 from app.llm import LLMError
 from app.models import Citation, IngestRequest, RetrievalFilter, ScoredChunk
 from app.retrieval.grader import RetrievalGrader
+from app.retrieval.query_rewriter import SearchQueryRewriter
 from app.services.conversation import ConversationStore, QueryRewriter, Turn
 from app.services.index_version import IndexVersionProvider, settings_fingerprint
 from app.services.ingest_jobs import IngestJobManager
@@ -221,7 +222,7 @@ class TestRetrievalGrader:
     async def test_low_top_score_grades_none_without_llm(
         self, settings: Settings, llm: FakeLLM
     ) -> None:
-        result = await RetrievalGrader(llm, settings).grade("q", _chunks(0.01), "r")
+        result = await RetrievalGrader(llm, settings).grade("q", _chunks(0.001), "r")
         assert result.grade == "none" and not result.llm_called
         assert llm.calls == []
 
@@ -243,6 +244,60 @@ class TestRetrievalGrader:
         llm.grades = ["I think these are fine."]
         result = await RetrievalGrader(llm, settings).grade("What is KL?", _chunks(0.9), "r")
         assert result.grade == "ambiguous"
+
+    @pytest.mark.asyncio
+    async def test_per_excerpt_relevance_maps_to_chunk_ids(
+        self, settings: Settings, llm: FakeLLM
+    ) -> None:
+        chunks = [
+            ScoredChunk(chunk=library_chunk("kl"), score=0.9),
+            ScoredChunk(chunk=library_chunk("em"), score=0.5),
+        ]
+        llm.grades = [
+            '{"grade": "correct", "reason": "r", "sources": ['
+            '{"source": 1, "relevance": "relevant"}, {"source": 2, "relevance": "irrelevant"},'
+            ' {"source": 7, "relevance": "relevant"}]}'
+        ]
+        result = await RetrievalGrader(llm, settings).grade("What is KL?", chunks, "r")
+        assert result.grade == "correct"
+        assert result.relevance == {CHUNK_IDS["kl"]: "relevant", CHUNK_IDS["em"]: "irrelevant"}
+
+    @pytest.mark.asyncio
+    async def test_correct_with_no_relevant_excerpt_is_downgraded(
+        self, settings: Settings, llm: FakeLLM
+    ) -> None:
+        llm.grades = [
+            '{"grade": "correct", "reason": "r", "sources": [{"source": 1, "relevance": "partial"}]}'
+        ]
+        result = await RetrievalGrader(llm, settings).grade("What is KL?", _chunks(0.9), "r")
+        assert result.grade == "ambiguous" and "no excerpt marked relevant" in result.reason
+
+
+class TestSearchQueryRewriter:
+    @pytest.mark.asyncio
+    async def test_returns_a_new_query(self, settings: Settings, llm: FakeLLM) -> None:
+        llm.search_rewrites = ['  "Kullback-Leibler\n divergence"  ']
+        query = await SearchQueryRewriter(llm, settings).rewrite(
+            "What is KL?", ["What is KL?"], "", "r"
+        )
+        assert query == "Kullback-Leibler divergence"
+
+    @pytest.mark.asyncio
+    async def test_repeated_query_is_none(self, settings: Settings, llm: FakeLLM) -> None:
+        llm.search_rewrites = ["kl divergence"]
+        tried = ["What is KL?", "KL divergence"]
+        assert (
+            await SearchQueryRewriter(llm, settings).rewrite("What is KL?", tried, "", "r") is None
+        )
+
+    @pytest.mark.asyncio
+    async def test_llm_failure_is_none(self, settings: Settings) -> None:
+        class Down(FakeLLM):
+            async def generate(self, **kwargs: Any) -> Any:
+                raise LLMError("down")
+
+        rewriter = SearchQueryRewriter(Down(), settings)
+        assert await rewriter.rewrite("What is KL?", ["What is KL?"], "", "r") is None
 
 
 # ---------------------------------------------------------------------------
@@ -285,7 +340,7 @@ class TestIndexVersion:
 
     def test_fingerprint_tracks_prompt_and_model(self, tmp_path: Path) -> None:
         base = settings_fingerprint(make_settings(tmp_path))
-        assert settings_fingerprint(make_settings(tmp_path, prompt_version="v2")) != base
+        assert settings_fingerprint(make_settings(tmp_path, prompt_version="v1")) != base
         assert settings_fingerprint(make_settings(tmp_path, llm_generation_model="other")) != base
         assert settings_fingerprint(make_settings(tmp_path, log_level="DEBUG")) == base
 

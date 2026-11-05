@@ -5,9 +5,11 @@ Covers the M3 contract: grounded cited answers stream; nothing uncited leaves;
 """
 
 import json
+from pathlib import Path
 from typing import Any
 
 import pytest
+from fakeredis import FakeAsyncRedis
 
 from app.dependencies import Services
 from app.guardrails.input_guard import InputRejectedError
@@ -15,7 +17,7 @@ from app.llm import LLMError
 from app.models import Answer, QueryRequest
 from app.prompts import NOT_COVERED_MESSAGE
 from app.services.rag_pipeline import AnswerEvent, TokenEvent
-from conftest import CHUNK_IDS, FakeLLM
+from conftest import CHUNK_IDS, FakeLLM, build_test_services, make_settings
 
 
 async def _ask(services: Services, question: str, **fields: Any) -> tuple[list[str], Answer]:
@@ -57,7 +59,7 @@ class TestAnsweredPath:
         assert record["status"] == "answered" and record["grade"] == "correct"
         assert record["reranked"][0]["chunk_id"] == CHUNK_IDS["kl"]
         assert record["citations"] == [CHUNK_IDS["kl"]]
-        assert record["index_version"] and record["prompt_version"] == "v1"
+        assert record["index_version"] and record["prompt_version"] == "v2"
         assert {"retrieve", "rerank", "grade", "generate", "total"} <= set(record["latency_ms"])
         assert "distribution differs" not in json.dumps(record)  # no chunk text in logs
 
@@ -126,7 +128,8 @@ class TestLowConfidencePath:
     ) -> None:
         llm.grades = [
             '{"grade": "ambiguous", "reason": "ESL only touches it"}',
-            '{"grade": "correct", "reason": "PRML covers it"}',
+            '{"grade": "ambiguous", "reason": "still only ESL"}',  # after the search rewrite
+            '{"grade": "correct", "reason": "PRML covers it"}',  # across all books
         ]
         _, answer = await _ask(
             services, "How does the KL divergence relate to the EM algorithm?", book_filter=["ESL"]
@@ -135,7 +138,90 @@ class TestLowConfidencePath:
         assert "beyond your filters" in answer.text
         record = _log_records(services)[0]
         assert record["retried_without_filters"] is True
+        assert [r["adopted"] for r in record["search_retries"]] == [False]
         assert CHUNK_IDS["kl"] in [r["chunk_id"] for r in record["reranked"]]
+
+
+class TestSearchRewritePath:
+    @pytest.mark.asyncio
+    async def test_better_rewritten_search_is_adopted_and_answers_confidently(
+        self, services: Services, llm: FakeLLM
+    ) -> None:
+        llm.grades = [
+            '{"grade": "ambiguous", "reason": "no definition of KL"}',
+            '{"grade": "correct", "reason": "defines it",'
+            ' "sources": [{"source": 1, "relevance": "relevant"}]}',
+        ]
+        _, answer = await _ask(services, "What is the KL divergence?")
+        assert answer.status == "answered" and "Low confidence" not in answer.text
+        assert llm.calls == ["grade", "search_rewrite", "grade", "answer"]
+        record = _log_records(services)[0]
+        assert record["search_query"] == "Kullback-Leibler divergence definition"
+        assert record["search_retries"] == [
+            {"query": "Kullback-Leibler divergence definition", "grade": "correct", "adopted": True}
+        ]
+        assert record["grade"] == "correct"
+        assert record["grade_relevance"] == {record["reranked"][0]["chunk_id"]: "relevant"}
+        assert {"search_rewrite_1", "retrieve_retry_1", "grade_retry_1"} <= set(
+            record["latency_ms"]
+        )
+
+    @pytest.mark.asyncio
+    async def test_retry_that_is_no_better_keeps_the_first_excerpts(
+        self, services: Services, llm: FakeLLM
+    ) -> None:
+        llm.grades = [
+            '{"grade": "ambiguous", "reason": "partial"}',
+            '{"grade": "none", "reason": "off topic"}',
+        ]
+        _, answer = await _ask(services, "What is the KL divergence?")
+        assert answer.status == "low_confidence"
+        record = _log_records(services)[0]
+        assert record["search_query"] is None and record["grade"] == "ambiguous"
+        assert record["search_retries"][0]["adopted"] is False
+
+    @pytest.mark.asyncio
+    async def test_rewrite_repeating_the_question_skips_the_retry(
+        self, services: Services, llm: FakeLLM
+    ) -> None:
+        llm.grades = ['{"grade": "ambiguous", "reason": "partial"}']
+        llm.search_rewrites = ["what is the KL divergence?"]  # same query, other case
+        await _ask(services, "What is the KL divergence?")
+        assert llm.calls == ["grade", "search_rewrite", "answer"]
+        assert _log_records(services)[0]["search_retries"] == []
+
+    @pytest.mark.asyncio
+    async def test_correct_and_none_grades_never_rewrite(
+        self, services: Services, llm: FakeLLM
+    ) -> None:
+        await _ask(services, "What is the KL divergence?")
+        llm.grades = ['{"grade": "none", "reason": "off topic"}']
+        await _ask(services, "What does the KL divergence measure?")
+        assert "search_rewrite" not in llm.calls
+
+
+@pytest.mark.asyncio
+async def test_grader_max_retries_zero_disables_the_rewrite(
+    tmp_path: Path, llm: FakeLLM, redis: FakeAsyncRedis
+) -> None:
+    services = await build_test_services(make_settings(tmp_path, grader_max_retries=0), llm, redis)
+    llm.grades = ['{"grade": "ambiguous", "reason": "partial"}']
+    _, answer = await _ask(services, "What is the KL divergence?")
+    services.query_log.close()
+    assert answer.status == "low_confidence"
+    assert llm.calls == ["grade", "answer"]
+
+
+@pytest.mark.asyncio
+async def test_v1_prompts_have_no_rewrite_and_answer_as_before(
+    tmp_path: Path, llm: FakeLLM, redis: FakeAsyncRedis
+) -> None:
+    services = await build_test_services(make_settings(tmp_path, prompt_version="v1"), llm, redis)
+    llm.grades = ['{"grade": "ambiguous", "reason": "partial"}']
+    _, answer = await _ask(services, "What is the KL divergence?")
+    services.query_log.close()
+    assert answer.status == "low_confidence"
+    assert "search_rewrite" not in llm.calls
 
 
 class TestSemanticCachePath:

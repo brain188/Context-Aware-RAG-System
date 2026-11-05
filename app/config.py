@@ -111,7 +111,8 @@ class Settings(BaseSettings):
     llm_rewrite_max_tokens: int = 200
     llm_grader_max_tokens: int = 300
     # Template set under app/prompts/templates/; bump to roll out (and evaluate) new prompts.
-    prompt_version: str = "v1"
+    # v2: grader rates each excerpt; adds the search-query rewrite used after "ambiguous".
+    prompt_version: str = "v2"
 
     # --- Redis ---
     redis_url: str = "redis://localhost:6379"
@@ -124,8 +125,15 @@ class Settings(BaseSettings):
     rrf_k: int = 60
     rerank_top_k: int = 5
     # Top rerank score below which retrieval grades "none" without an LLM call.
-    # bge-reranker scores are sigmoid relevance in [0, 1]; tune on the eval set.
-    grade_min_rerank_score: float = 0.05
+    # bge-reranker scores are sigmoid relevance in [0, 1]. Short questions score
+    # low even on the right chunk ("What is a migration?" got 0.0056), so the
+    # floor only skips near-certain misses; the LLM grader decides the rest.
+    # 0.005 measured on 40 hand labels: no false refusals, no false accepts
+    # (0.05 refused one answerable question).
+    grade_min_rerank_score: float = 0.005
+    # Search-query rewrites + re-retrievals after an "ambiguous" grade (0 = off).
+    # Each costs two fast-model calls (rewrite, grade).
+    grader_max_retries: int = 1
 
     # --- Semantic cache ---
     semantic_cache_enabled: bool = True

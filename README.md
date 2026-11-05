@@ -135,6 +135,23 @@ section, if given) with overlapping pages.
 CI cannot reach the books or the API, so it gates on committed reports: it fails when the
 newest report of a mode is worse than the previous one by more than 0.03 on any metric.
 
+### Checking the retrieval grader against your labels
+
+The grader decides whether retrieved excerpts can answer a question (`correct`), only
+partly (`ambiguous`: rewrite the search query and retrieve again, up to
+`GRADER_MAX_RETRIES`), or not at all (`none`: "not covered").
+
+```bash
+python -m evaluation.grader_labels export   # excerpts per question → data/grader_labels.jsonl (no LLM)
+# set "label" to correct | ambiguous | none on each line (the grader's verdict is not shown)
+python -m evaluation.grader_labels score    # grade the same excerpts, print agreement + confusion matrix
+python -m evaluation.grader_labels score --set prompt_version=v1   # compare prompt versions
+```
+
+Scoring re-grades the stored excerpts, so labels stay valid after a re-ingest. A
+re-export keeps your labels for questions whose excerpts did not change. The file holds
+book text, so it lives in the gitignored `data/` folder.
+
 ## Development
 
 ```bash
