@@ -259,6 +259,19 @@ class TestCli:
         assert tuned.query_log_path.name == "eval_query_log.jsonl"
         assert tuned.query_log_path.parent == settings.query_log_path.parent
 
+    def test_set_overrides_are_typed_and_validated(self, settings: Settings) -> None:
+        args = parse_args(["--set", "rerank_top_k=8", "--set", "EMBEDDING_QUERY_INSTRUCTION="])
+        tuned = eval_settings(settings, args.set)
+        assert (tuned.rerank_top_k, tuned.embedding_query_instruction) == (8, "")
+        with pytest.raises(ValueError, match="no such setting"):
+            eval_settings(settings, {"nope": "1"})
+        with pytest.raises(ValueError, match="rerank_top_k"):
+            eval_settings(settings, {"rerank_top_k": "many"})
+
+    def test_set_needs_name_equals_value(self) -> None:
+        with pytest.raises(SystemExit):
+            parse_args(["--set", "rerank_top_k"])
+
     def test_judge_needs_a_full_run(self) -> None:
         with pytest.raises(SystemExit):
             parse_args(["--retrieval-only", "--judge"])

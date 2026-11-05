@@ -9,6 +9,7 @@ contract: vector names come from Settings and must match on both sides.
 from app.config import Settings, get_logger
 from app.models import Chunk
 from app.retrieval.sparse_encoder import BM25SparseEncoder
+from app.services.index_version import embedder_stamp, stamp_problems
 from qdrant_client import QdrantClient
 from qdrant_client.models import (
     CollectionInfo,
@@ -82,33 +83,51 @@ def _schema_problems(info: CollectionInfo, settings: Settings) -> list[str]:
         problems.append(f"no sparse vector named '{sparse_name}'")
     elif sparse[sparse_name].modifier != Modifier.IDF:
         problems.append(f"sparse vector '{sparse_name}' lacks the IDF modifier")
+
+    problems.extend(stamp_problems(info.config.metadata or {}, settings))
     return problems
 
 
 def ensure_collection(client: QdrantClient, settings: Settings) -> None:
     """Create the collection if missing; otherwise verify its schema matches.
 
-    Either way, make sure the payload indexes exist (adding an index to an
-    existing collection is safe and needs no re-ingest).
+    New collections are stamped with the embedder that writes them, which the
+    app checks at startup. Either way, make sure the payload indexes exist
+    (adding an index to an existing collection is safe and needs no re-ingest).
 
     Raises:
         CollectionSchemaError: if the existing collection has a different schema
-            (e.g. created before sparse vectors were added).
+            (e.g. created before sparse vectors were added) or was written by a
+            different embedding model.
     """
     name = settings.qdrant_collection
     if not client.collection_exists(name):
         dense, sparse = collection_schema(settings)
         client.create_collection(
-            collection_name=name, vectors_config=dense, sparse_vectors_config=sparse
+            collection_name=name,
+            vectors_config=dense,
+            sparse_vectors_config=sparse,
+            metadata=embedder_stamp(settings),
         )
         logger.info("Created Qdrant collection '%s' (dense + bm25 sparse).", name)
     else:
-        problems = _schema_problems(client.get_collection(name), settings)
+        info = client.get_collection(name)
+        problems = _schema_problems(info, settings)
         if problems:
             raise CollectionSchemaError(
                 f"Collection '{name}' has an outdated schema: {'; '.join(problems)}. "
                 f"Delete it (DELETE {settings.qdrant_url}/collections/{name}) and re-ingest "
                 "all books."
+            )
+        if "embedding_model" not in (info.config.metadata or {}):
+            # Created before stamping existed: its vectors passed the size check above,
+            # so record the configured embedder as the one that wrote them.
+            client.update_collection(name, metadata=embedder_stamp(settings))
+            logger.warning(
+                "Collection '%s' had no embedder stamp; recorded %s. If its existing chunks "
+                "were embedded with another model, re-ingest every book.",
+                name,
+                embedder_stamp(settings),
             )
     _ensure_payload_indexes(client, name)
 

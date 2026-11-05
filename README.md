@@ -91,6 +91,7 @@ python -m evaluation.run_eval --retrieval-only     # retrieve + rerank only: no 
 python -m evaluation.run_eval                      # full pipeline: ~2 LLM calls per question
 python -m evaluation.run_eval --judge              # + faithfulness / relevance judge (1 call per answer)
 python -m evaluation.run_eval --tag smoke --retrieval-only --fail-on-regression
+python -m evaluation.run_eval --retrieval-only --set embedding_query_instruction=   # override any setting
 python -m evaluation.compare --latest              # newest report vs the one before, per mode
 ```
 

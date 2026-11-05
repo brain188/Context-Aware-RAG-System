@@ -26,7 +26,7 @@ from app.retrieval.reranker import Reranker
 from app.retrieval.sparse_encoder import BM25SparseEncoder
 from app.services.conversation import ConversationStore, QueryRewriter
 from app.services.generator import AnswerGenerator
-from app.services.index_version import IndexVersionProvider
+from app.services.index_version import IndexVersionProvider, embedder_stamp
 from app.services.ingest_jobs import IngestJobManager
 from app.services.library import LibraryCatalog
 from app.services.query_logger import JsonlQueryLog, QueryLogSink
@@ -164,7 +164,10 @@ async def seeded_qdrant(settings: Settings) -> AsyncQdrantClient:
     client = AsyncQdrantClient(location=":memory:")
     dense, sparse = collection_schema(settings)
     await client.create_collection(
-        settings.qdrant_collection, vectors_config=dense, sparse_vectors_config=sparse
+        settings.qdrant_collection,
+        vectors_config=dense,
+        sparse_vectors_config=sparse,
+        metadata=embedder_stamp(settings),
     )
     chunks = [library_chunk(n) for n in LIBRARY]
     await client.upsert(

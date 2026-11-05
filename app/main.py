@@ -20,6 +20,7 @@ from app.errors import MAPPED_EXCEPTIONS, error_response
 from app.middleware import RequestIdMiddleware
 from app.models import ErrorResponse
 from app.routes import health, ingest, library, query
+from app.services.index_version import IndexMismatchError, check_index_embedder
 
 logger = get_logger(__name__)
 
@@ -81,6 +82,12 @@ def create_app(settings: Settings | None = None, services: Services | None = Non
         app.state.settings = resolved
         owned = services is None
         app.state.services = services or build_services(resolved)
+        try:
+            await check_index_embedder(app.state.services.qdrant, resolved)
+        except IndexMismatchError:
+            if owned:
+                await app.state.services.aclose()
+            raise
         if owned and resolved.warm_models_on_startup:
             await warm_models(app.state.services)
         logger.info(
