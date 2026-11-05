@@ -42,7 +42,8 @@ _FINGERPRINT_FIELDS = (
     "bm25_avg_doc_length",
     "reranker_model",
     "rerank_top_k",
-    "llm_model",
+    "llm_provider",
+    "llm_generation_model",
     "prompt_version",
 )
 

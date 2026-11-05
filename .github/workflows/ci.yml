@@ -19,7 +19,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest pytest-asyncio fakeredis ruff black pydantic pydantic-settings pymupdf qdrant-client tokenizers huggingface_hub httpx fastapi sse-starlette redis anthropic==0.46.0
+          pip install pytest pytest-asyncio fakeredis ruff black pydantic pydantic-settings pymupdf qdrant-client tokenizers huggingface_hub httpx fastapi sse-starlette redis anthropic==0.46.0 google-genai==1.75.0 tenacity==9.1.4
 
       - name: Ruff (lint + import order)
         run: ruff check .
@@ -29,7 +29,7 @@ jobs:
 
       - name: Pytest
         env:
-          LLM_API_KEY: test-key-for-ci
+          GEMINI_API_KEY: test-key-for-ci
         run: pytest -q
 
       # CI has no books, index, or API key, so it cannot run the eval itself. Reports
@@ -37,5 +37,5 @@ jobs:
       # the one before it (and passes while fewer than two exist).
       - name: Eval regression gate (committed reports)
         env:
-          LLM_API_KEY: test-key-for-ci
+          GEMINI_API_KEY: test-key-for-ci
         run: python -m evaluation.compare --latest

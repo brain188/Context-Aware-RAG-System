@@ -42,7 +42,7 @@ from pipeline.vector_store import build_points, collection_schema
 
 def _settings(**overrides: Any) -> Settings:
     """Settings isolated from the developer's real .env files."""
-    return Settings(_env_file=None, llm_api_key="sk-test", **overrides)
+    return Settings(_env_file=None, gemini_api_key="test-key", **overrides)
 
 
 # name -> (text, dense embedding, book, page)

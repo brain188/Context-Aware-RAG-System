@@ -21,10 +21,14 @@ FlagEmbedding                   # bge-reranker cross-encoder
 qdrant-client
 redis
 
-# LLM
+# LLM (app/llm/: Gemini default; Groq fallback + judge and Ollama private mode over httpx;
+# Claude optional)
+google-genai          # Gemini API client
 anthropic             # Claude API client
+tenacity              # retry with backoff
+httpx                 # Ollama client
 
-# Evaluation: evaluation/ needs nothing extra (the optional LLM judge uses anthropic)
+# Evaluation: evaluation/ needs nothing extra (the optional judge uses app/llm/)
 
 # Frontend (v1)
 streamlit

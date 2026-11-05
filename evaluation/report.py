@@ -100,6 +100,13 @@ def _summary_table(summary: dict) -> list[str]:
     return lines
 
 
+def _llm_label(config: dict) -> str:
+    """ "provider:model" of the generator (reports before the LLM layer had `llm_model`)."""
+    if "llm_generation_model" in config:
+        return f"{config.get('llm_provider', '?')}:{config['llm_generation_model']}"
+    return str(config.get("llm_model", "?"))
+
+
 def _where(ref: dict) -> str:
     pages = (
         f"p. {ref['page_start']}"
@@ -120,7 +127,7 @@ def render_markdown(report: dict, comparison_md: str | None = None) -> str:
         f"- Questions: {run['question_count']} from `{run['questions_file']}`",
         f"- Index version: `{run['config'].get('index_version')}`",
         f"- Models: embed `{run['config']['embedding_model']}`, rerank "
-        f"`{run['config']['reranker_model']}`, LLM `{run['config']['llm_model']}`",
+        f"`{run['config']['reranker_model']}`, LLM `{_llm_label(run['config'])}`",
         "",
         "## Summary",
         "",

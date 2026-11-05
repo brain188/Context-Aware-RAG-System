@@ -18,6 +18,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 # Repo root, resolved from this file so config loads regardless of working directory.
 _ROOT = Path(__file__).resolve().parent.parent
 
+# LLM provider and reasoning-depth names; app.llm.base re-exports them as Provider / ThinkingLevel.
+LLMProviderName = Literal["gemini", "groq", "anthropic", "ollama"]
+ThinkingLevelName = Literal["minimal", "low", "medium", "high"]
+
 
 class Settings(BaseSettings):
     """All application configuration, loaded from environment variables.
@@ -69,14 +73,40 @@ class Settings(BaseSettings):
     reranker_model: str = "BAAI/bge-reranker-base"
     rerank_batch_size: int = 16
 
-    # --- LLM ---
-    llm_provider: str = "anthropic"
-    llm_model: str = "claude-sonnet-4-6"
-    llm_api_key: str  # REQUIRED — no default; absence raises ValidationError at startup
+    # --- LLM (roles: generation = answers, fast = rewrite/grade, judge = eval) ---
+    # Primary provider for generation and fast. Its API key is required at startup.
+    llm_provider: LLMProviderName = "gemini"
+    llm_generation_model: str = "gemini-3.8-flash"
+    llm_fast_model: str = "gemini-3.5-flash-lite"
+    # Reasoning depth per role (Gemini thinking_level / Groq reasoning_effort /
+    # Claude effort); None = model default.
+    llm_generation_thinking: ThinkingLevelName | None = "low"
+    llm_fast_thinking: ThinkingLevelName | None = "minimal"
+    # Judge: a different model family than the generator reduces self-preference bias.
+    # None = the primary provider. Its key is checked only when an eval uses --judge.
+    llm_judge_provider: LLMProviderName | None = "groq"
+    llm_judge_model: str = "openai/gpt-oss-120b"
+    llm_judge_thinking: ThinkingLevelName | None = "low"
+    # Used by generation and fast when the primary is still failing after retries
+    # (429, timeouts, 5xx). None = no fallback.
+    llm_fallback_provider: LLMProviderName | None = None
+    llm_fallback_model: str = "openai/gpt-oss-120b"
+    gemini_api_key: str | None = None
+    groq_api_key: str | None = None
+    groq_base_url: str = "https://api.groq.com/openai/v1"
+    anthropic_api_key: str | None = None
+    ollama_base_url: str = "http://localhost:11434"
     llm_max_tokens: int = 2048
-    llm_temperature: float = 0.2
+    # None = the provider's default (recommended: Gemini 3 and Claude 5 models expect it).
+    llm_temperature: float | None = None
     llm_timeout_seconds: float = 60.0
-    llm_max_retries: int = 2  # SDK retries 429/5xx/connection errors with backoff
+    llm_max_retries: int = 2  # retries per call on 429/timeouts/5xx, with backoff
+    # Client-side limits per model of the primary provider (0 = off); match your quota.
+    llm_rpm_limit: int = 10
+    llm_tpm_limit: int = 250_000
+    # The same, per model of any other provider (fallback, judge). Defaults: Groq free tier.
+    llm_fallback_rpm_limit: int = 30
+    llm_fallback_tpm_limit: int = 8_000
     # Short auxiliary calls (follow-up rewrite, retrieval grading).
     llm_rewrite_max_tokens: int = 200
     llm_grader_max_tokens: int = 300
@@ -137,6 +167,47 @@ class Settings(BaseSettings):
         header and warn about insecure transport; local Qdrant wants no key.
         """
         return v or None
+
+    @field_validator(
+        "gemini_api_key",
+        "groq_api_key",
+        "anthropic_api_key",
+        "llm_judge_provider",
+        "llm_fallback_provider",
+        "llm_temperature",
+        "llm_generation_thinking",
+        "llm_fast_thinking",
+        "llm_judge_thinking",
+        mode="before",
+    )
+    @classmethod
+    def _blank_is_none(cls, v: object) -> object:
+        """Treat blank optional values in .env (`KEY=`) as unset."""
+        return None if v == "" else v
+
+    @field_validator("llm_provider", mode="before")
+    @classmethod
+    def _blank_provider_is_default(cls, v: object) -> object:
+        """A blank LLM_PROVIDER means the default provider."""
+        return "gemini" if v == "" else v
+
+    @model_validator(mode="after")
+    def _llm_providers_have_keys(self) -> "Settings":
+        """Fail at startup, not on the first query, if the primary or fallback lacks its key."""
+        keys = {
+            "gemini": self.gemini_api_key,
+            "groq": self.groq_api_key,
+            "anthropic": self.anthropic_api_key,
+        }
+        for setting, provider in (
+            ("LLM_PROVIDER", self.llm_provider),
+            ("LLM_FALLBACK_PROVIDER", self.llm_fallback_provider),
+        ):
+            if provider in keys and not keys[provider]:
+                raise ValueError(
+                    f"{setting}={provider} needs {provider.upper()}_API_KEY; set it in infra/.env"
+                )
+        return self
 
     @model_validator(mode="after")
     def _chunks_fit_embedding_model(self) -> "Settings":

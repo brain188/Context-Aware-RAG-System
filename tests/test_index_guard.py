@@ -26,7 +26,7 @@ from pipeline.vector_store import CollectionSchemaError, collection_schema, ensu
 
 def _settings(**overrides) -> Settings:
     return Settings(
-        _env_file=None, llm_api_key="sk-test", **{"embedding_dimension": 3, **overrides}
+        _env_file=None, gemini_api_key="test-key", **{"embedding_dimension": 3, **overrides}
     )
 
 

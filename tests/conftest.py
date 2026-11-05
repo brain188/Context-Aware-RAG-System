@@ -18,7 +18,8 @@ from qdrant_client import AsyncQdrantClient
 
 from app.config import Settings
 from app.dependencies import Services
-from app.llm import LLMError
+from app.llm import LLMError, LLMResult
+from app.llm.base import T, parse_structured
 from app.models import Chunk, ChunkMetadata
 from app.retrieval.grader import RetrievalGrader
 from app.retrieval.hybrid_retriever import HybridRetriever
@@ -73,7 +74,7 @@ _STOPWORDS = {"what", "does", "with", "that", "this", "from", "about", "explain"
 def make_settings(tmp_path: Path, **overrides: Any) -> Settings:
     """Settings isolated from the developer's .env, sized for the 4-d fake library."""
     values: dict[str, Any] = {
-        "llm_api_key": "sk-test",
+        "gemini_api_key": "test-key",
         "embedding_dimension": 4,
         "retrieval_top_k": 4,
         "rerank_top_k": 2,
@@ -116,19 +117,34 @@ class FakeLLM:
         self.answer = "The KL divergence measures how distributions differ [S1]."
         self.grades = ['{"grade": "correct", "reason": "direct match"}']
         self.rewrites = ["standalone question"]
+        self.structured = ['{"faithfulness": 1.0, "answer_relevance": 1.0}']
         self.fail_stream = False
-        self.calls: list[str] = []  # "grade" | "rewrite" | "answer"
+        self.calls: list[str] = []  # "grade" | "rewrite" | "answer" | "structured"
 
     @staticmethod
     def _pop(queue: list[str]) -> str:
         return queue.pop(0) if len(queue) > 1 else queue[0]
 
-    async def complete(self, *, system: str, prompt: str, max_tokens: int, request_id: str) -> str:
+    def _result(self, text: str) -> LLMResult:
+        return LLMResult(text, self.model, None, None, 0.0, "stop")
+
+    async def generate(
+        self, *, system: str, prompt: str, max_tokens: int, request_id: str
+    ) -> LLMResult:
         if "You judge" in system:
             self.calls.append("grade")
-            return self._pop(self.grades)
+            return self._result(self._pop(self.grades))
         self.calls.append("rewrite")
-        return self._pop(self.rewrites)
+        return self._result(self._pop(self.rewrites))
+
+    async def generate_structured(
+        self, *, system: str, prompt: str, schema: type[T], max_tokens: int, request_id: str
+    ) -> T:
+        self.calls.append("structured")
+        return parse_structured(self._pop(self.structured), schema)
+
+    async def aclose(self) -> None:
+        pass
 
     async def stream(
         self, *, system: str, prompt: str, max_tokens: int, request_id: str
@@ -228,6 +244,15 @@ async def build_test_services(
         ingest_jobs=ingest_jobs,
         query_log=query_log,
     )
+
+
+@pytest.fixture(autouse=True)
+def _llm_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Pin the LLM settings: env vars beat infra/.env, so a developer's providers and keys
+    never leak into tests that read get_settings()."""
+    monkeypatch.setenv("LLM_PROVIDER", "gemini")
+    monkeypatch.setenv("LLM_FALLBACK_PROVIDER", "")
+    monkeypatch.setenv("GEMINI_API_KEY", "test-key")
 
 
 @pytest.fixture

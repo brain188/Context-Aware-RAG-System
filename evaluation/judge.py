@@ -2,26 +2,24 @@
 
 Scores an answer against the excerpts it was generated from. Each call costs
 one LLM request, so run_eval only uses it with --judge. A judge from the same
-model family as the generator tends to be lenient; pass --judge-model to use
-another model.
+model family as the generator tends to be lenient, so the judge role defaults
+to another provider (LLM_JUDGE_PROVIDER); --judge-model overrides its model.
+The verdict uses the provider's structured (JSON-schema) output.
 """
 
-import json
-import re
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, Field
 
 from app.config import get_logger
-from app.llm import LLMClient
+from app.llm import LLMClient, LLMOutputError
 from app.prompts import PromptTemplate
 
 logger = get_logger(__name__)
 
 _PROMPTS_DIR = Path(__file__).resolve().parent / "prompts"
-_JSON_OBJECT = re.compile(r"\{.*\}", re.DOTALL)
 JUDGE_MAX_TOKENS = 600
 
 
@@ -57,17 +55,6 @@ def build_judge_prompt(question: str, answer: str, excerpts: list[Excerpt]) -> t
     return _template("judge_system").render(), user
 
 
-def parse_judge_reply(text: str) -> JudgeReply | None:
-    """Extract the verdict, or None if the reply is not JSON of that shape."""
-    match = _JSON_OBJECT.search(text)
-    if match is None:
-        return None
-    try:
-        return JudgeReply.model_validate(json.loads(match.group(0)))
-    except (json.JSONDecodeError, ValidationError):
-        return None
-
-
 class AnswerJudge:
     """Ask an LLM to score one answer."""
 
@@ -87,12 +74,14 @@ class AnswerJudge:
             LLMError: if the judge model cannot be reached.
         """
         system, prompt = build_judge_prompt(question, answer, excerpts)
-        reply = await self._llm.complete(
-            system=system, prompt=prompt, max_tokens=JUDGE_MAX_TOKENS, request_id=request_id
-        )
-        verdict = parse_judge_reply(reply)
-        if verdict is None:
-            logger.warning(
-                "Unparseable judge reply: %.200s", reply, extra={"request_id": request_id}
+        try:
+            return await self._llm.generate_structured(
+                system=system,
+                prompt=prompt,
+                schema=JudgeReply,
+                max_tokens=JUDGE_MAX_TOKENS,
+                request_id=request_id,
             )
-        return verdict
+        except LLMOutputError as exc:
+            logger.warning("Unusable judge reply: %s", exc, extra={"request_id": request_id})
+            return None

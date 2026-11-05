@@ -6,7 +6,7 @@ shown only in dev; stack traces never reach the client.
 """
 
 from app.guardrails.input_guard import InputRejectedError
-from app.llm import LLMError
+from app.llm import LLMError, LLMSafetyBlockError
 from app.models import ErrorResponse
 from app.prompts import PromptNotFoundError
 from app.retrieval.errors import RetrievalError
@@ -30,6 +30,8 @@ _MAPPING: list[tuple[type[Exception], int, str]] = [
     (IngestRequestError, 400, "invalid_ingest_request"),
     (NotFoundError, 404, "not_found"),
     (IngestUnavailableError, 501, "ingest_unavailable"),
+    # The provider refused this content: rephrasing can help, retrying cannot.
+    (LLMSafetyBlockError, 422, "llm_safety_block"),
     (LLMError, 502, "llm_unavailable"),
     (RetrievalError, 503, "retrieval_unavailable"),
     (PromptNotFoundError, 500, "configuration_error"),

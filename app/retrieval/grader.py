@@ -62,10 +62,10 @@ class RetrievalGrader:
             system, prompt = build_grading_prompt(
                 question, format_sources(chunks), self._prompt_version
             )
-            reply = await self._llm.complete(
+            reply = await self._llm.generate(
                 system=system, prompt=prompt, max_tokens=self._max_tokens, request_id=request_id
             )
-            verdict = parse_grade_reply(reply)
+            verdict = parse_grade_reply(reply.text)
             if verdict is None:
                 logger.warning(
                     "Grader reply was not valid JSON; treating as ambiguous.",

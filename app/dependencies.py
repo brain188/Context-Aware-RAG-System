@@ -12,7 +12,7 @@ from qdrant_client import AsyncQdrantClient
 from redis.asyncio import Redis
 
 from app.config import Settings, get_logger
-from app.llm import AnthropicLLM
+from app.llm import LLMFactory
 from app.retrieval.grader import RetrievalGrader
 from app.retrieval.hybrid_retriever import HybridRetriever
 from app.retrieval.query_embedder import QueryEmbedder, SentenceTransformerQueryEmbedder
@@ -45,11 +45,14 @@ class Services:
     cache: SemanticCache
     ingest_jobs: IngestJobManager
     query_log: QueryLogSink
+    llms: LLMFactory | None = None  # owns the LLM clients; tests inject fakes instead
 
     async def aclose(self) -> None:
         """Release network clients and flush the query log."""
         await self.qdrant.close()
         await self.redis.aclose()
+        if self.llms is not None:
+            await self.llms.aclose()
         self.query_log.close()
 
 
@@ -65,7 +68,8 @@ def build_services(settings: Settings, query_log: QueryLogSink | None = None) ->
     )
     # Bytes in, bytes out: the semantic cache stores raw float32 vectors.
     redis = Redis.from_url(settings.redis_url, decode_responses=False)
-    llm = AnthropicLLM(settings)
+    llms = LLMFactory(settings)
+    generation_llm, fast_llm = llms.get("generation"), llms.get("fast")
     embedder = SentenceTransformerQueryEmbedder(settings)
     scorer = CrossEncoderScorer(settings)
 
@@ -76,20 +80,20 @@ def build_services(settings: Settings, query_log: QueryLogSink | None = None) ->
     retrieval = RetrievalStage(
         HybridRetriever(qdrant, embedder, BM25SparseEncoder(settings), settings),
         Reranker(scorer, settings),
-        RetrievalGrader(llm, settings),
+        RetrievalGrader(fast_llm, settings),
     )
     pipeline = RagPipeline(
         settings=settings,
         embedder=embedder,
         retrieval=retrieval,
-        generator=AnswerGenerator(llm, settings),
-        rewriter=QueryRewriter(llm, settings),
+        generator=AnswerGenerator(generation_llm, settings),
+        rewriter=QueryRewriter(fast_llm, settings),
         conversations=ConversationStore(redis, settings),
         cache=cache,
         index_versions=IndexVersionProvider(qdrant, settings),
         catalog=catalog,
         query_log=query_log,
-        llm_model=llm.model,
+        llm_model=generation_llm.model,
     )
 
     async def _after_ingest(request_id: str) -> None:
@@ -111,6 +115,7 @@ def build_services(settings: Settings, query_log: QueryLogSink | None = None) ->
         cache=cache,
         ingest_jobs=ingest_jobs,
         query_log=query_log,
+        llms=llms,
     )
 
 

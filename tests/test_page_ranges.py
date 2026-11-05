@@ -15,7 +15,9 @@ from pipeline.preprocessor import preprocess_document
 @pytest.fixture(autouse=True)
 def small_chunks():
     env = {
-        "LLM_API_KEY": "sk-test",
+        "GEMINI_API_KEY": "test-key",
+        "LLM_PROVIDER": "gemini",  # beats whatever infra/.env says
+        "LLM_FALLBACK_PROVIDER": "",
         "CHUNK_MIN_TOKENS": "20",
         "CHUNK_MAX_TOKENS": "60",
         "CHUNK_OVERLAP_TOKENS": "5",

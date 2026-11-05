@@ -52,7 +52,9 @@ def _make_doc(sections: list[tuple[str, str, str, int, int]]) -> ParsedDocument:
 def _patch_settings(**kwargs):
     """Context manager: override chunk-size settings and clear lru_cache."""
     defaults = {
-        "LLM_API_KEY": "sk-test",
+        "GEMINI_API_KEY": "test-key",
+        "LLM_PROVIDER": "gemini",  # beats whatever infra/.env says
+        "LLM_FALLBACK_PROVIDER": "",
         "CHUNK_MIN_TOKENS": "50",
         "CHUNK_MAX_TOKENS": "200",
         "CHUNK_OVERLAP_TOKENS": "20",

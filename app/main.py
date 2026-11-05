@@ -91,10 +91,12 @@ def create_app(settings: Settings | None = None, services: Services | None = Non
         if owned and resolved.warm_models_on_startup:
             await warm_models(app.state.services)
         logger.info(
-            "API ready: env=%s collection=%s model=%s prompt=%s",
+            "API ready: env=%s collection=%s llm=%s:%s fallback=%s prompt=%s",
             resolved.environment,
             resolved.qdrant_collection,
-            resolved.llm_model,
+            resolved.llm_provider,
+            resolved.llm_generation_model,
+            resolved.llm_fallback_provider or "none",
             resolved.prompt_version,
         )
         yield

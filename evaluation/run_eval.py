@@ -27,7 +27,7 @@ from qdrant_client import AsyncQdrantClient
 
 from app.config import Settings, get_logger, get_settings
 from app.dependencies import build_services, warm_models
-from app.llm import AnthropicLLM, LLMError
+from app.llm import LLMError
 from app.retrieval.errors import RetrievalError
 from app.retrieval.hybrid_retriever import HybridRetriever
 from app.retrieval.query_embedder import SentenceTransformerQueryEmbedder
@@ -67,7 +67,12 @@ _CONFIG_FIELDS = (
     "embedding_model",
     "embedding_query_instruction",
     "reranker_model",
-    "llm_model",
+    "llm_provider",
+    "llm_generation_model",
+    "llm_fast_model",
+    "llm_generation_thinking",
+    "llm_fast_thinking",
+    "llm_fallback_provider",
     "llm_temperature",
     "prompt_version",
     "retrieval_top_k",
@@ -214,10 +219,7 @@ async def run(args: argparse.Namespace) -> int:
             await warm_models(services)
             runner: Runner = PipelineRunner(services.pipeline, capture, lookup)
             if args.judge:
-                judge_settings = settings.model_copy(
-                    update={"llm_model": args.judge_model or settings.llm_model}
-                )
-                answer_judge = AnswerJudge(AnthropicLLM(judge_settings))
+                answer_judge = AnswerJudge(services.llms.get("judge", model=args.judge_model))
                 judge, judge_model = make_judge_step(answer_judge, lookup), answer_judge.model
         else:
             runner = await _retrieval_runner(settings, qdrant)
@@ -227,7 +229,7 @@ async def run(args: argparse.Namespace) -> int:
             f"Cannot evaluate: {exc}. Is Qdrant running and the library ingested?", file=sys.stderr
         )
         return 2
-    except IndexMismatchError as exc:
+    except (IndexMismatchError, LLMError) as exc:  # per-question LLM errors are caught earlier
         print(f"Cannot evaluate: {exc}", file=sys.stderr)
         return 2
     finally:
@@ -272,7 +274,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--questions", type=Path, default=DEFAULT_QUESTIONS)
     parser.add_argument("--retrieval-only", action="store_true", help="skip generation (no LLM)")
     parser.add_argument("--judge", action="store_true", help="score faithfulness with an LLM")
-    parser.add_argument("--judge-model", help="model for --judge (default: LLM_MODEL)")
+    parser.add_argument("--judge-model", help="model for --judge (default: LLM_JUDGE_MODEL)")
     parser.add_argument("--ids", type=lambda s: [i for i in s.split(",") if i], help="a,b,c")
     parser.add_argument("--tag", action="append", help="only questions with this tag (repeatable)")
     parser.add_argument("--compare", default="latest", help="baseline report: latest | none | PATH")

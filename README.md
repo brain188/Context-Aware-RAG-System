@@ -50,10 +50,15 @@ python -m venv .venv
 .venv/Scripts/activate          # Windows;  source .venv/bin/activate on Unix
 pip install -r requirements.txt
 
-cp infra/.env.example infra/.env   # then fill in LLM_API_KEY
+cp infra/.env.example infra/.env   # then fill in GEMINI_API_KEY and GROQ_API_KEY
 ```
 
-`LLM_API_KEY` is the only variable without a default — startup fails loudly if it is missing.
+The LLM layer (`app/llm/`) uses Gemini by default, falls back to Groq (`openai/gpt-oss-120b`)
+after retries, and judges evals with Groq; Claude is available as `anthropic`, and
+`LLM_PROVIDER=ollama` keeps everything on the machine. Startup fails
+loudly if the primary or fallback provider has no API key. Pick model ids from
+`python -m app.llm.list_models` and set `LLM_RPM_LIMIT` / `LLM_TPM_LIMIT` to your quota.
+See [ADR-0001](docs/adr/0001-gemini-default-provider-abstraction.md).
 
 ## Running the ingestion pipeline
 

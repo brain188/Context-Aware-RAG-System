@@ -19,32 +19,53 @@ class TestSettings:
     def teardown_method(self) -> None:
         get_settings.cache_clear()
 
-    def test_loads_with_required_env_present(self) -> None:
-        """Settings should instantiate when LLM_API_KEY is provided."""
-        with patch.dict(os.environ, {"LLM_API_KEY": "sk-test-key"}, clear=False):
-            s = Settings()
-        assert s.llm_api_key == "sk-test-key"
+    def test_loads_with_the_primary_providers_key(self) -> None:
+        """Settings instantiate when the primary provider's key (Gemini by default) is set."""
+        with patch.dict(os.environ, {"GEMINI_API_KEY": "test-key"}, clear=False):
+            s = Settings(_env_file=None)
+        assert s.gemini_api_key == "test-key"
+        assert (s.llm_provider, s.llm_fallback_provider) == ("gemini", None)
         assert s.environment == "dev"
         assert s.retrieval_top_k == 20
         assert s.rerank_top_k == 5
 
-    def test_missing_llm_api_key_raises(self) -> None:
-        """Missing LLM_API_KEY must raise ValidationError, not silently default.
+    @pytest.mark.parametrize(
+        "values, message",
+        [
+            ({}, "LLM_PROVIDER=gemini needs GEMINI_API_KEY"),
+            ({"gemini_api_key": ""}, "LLM_PROVIDER=gemini needs GEMINI_API_KEY"),
+            (
+                {"gemini_api_key": "k", "llm_fallback_provider": "groq"},
+                "LLM_FALLBACK_PROVIDER=groq needs GROQ_API_KEY",
+            ),
+            (
+                {"gemini_api_key": "k", "llm_fallback_provider": "anthropic"},
+                "LLM_FALLBACK_PROVIDER=anthropic needs ANTHROPIC_API_KEY",
+            ),
+        ],
+    )
+    def test_missing_provider_key_raises(self, values: dict, message: str) -> None:
+        """A provider without its key must fail at startup, not on the first query.
 
-        _env_file=None disables dotenv loading so the developer's real infra/.env
-        cannot mask the failure this test exists to catch.
+        _env_file=None and a cleared environment keep the developer's real keys out.
         """
-        env = {k: v for k, v in os.environ.items() if k.upper() != "LLM_API_KEY"}
+        env = {k: v for k, v in os.environ.items() if not k.upper().endswith("_API_KEY")}
         with patch.dict(os.environ, env, clear=True):
-            with pytest.raises(ValidationError):
-                Settings(_env_file=None)
+            with pytest.raises(ValidationError, match=message):
+                Settings(_env_file=None, **values)
+
+    def test_ollama_needs_no_key_and_blank_fallback_means_none(self) -> None:
+        env = {k: v for k, v in os.environ.items() if not k.upper().endswith("_API_KEY")}
+        with patch.dict(os.environ, env, clear=True):
+            s = Settings(_env_file=None, llm_provider="ollama", llm_fallback_provider="")
+        assert (s.llm_provider, s.llm_fallback_provider) == ("ollama", None)
 
     def test_chunk_max_above_model_limit_is_rejected(self) -> None:
         """Chunks longer than the embedding model reads would be silently truncated."""
         with pytest.raises(ValidationError, match="EMBEDDING_MAX_TOKENS"):
             Settings(
                 _env_file=None,
-                llm_api_key="sk-test",
+                gemini_api_key="test-key",
                 chunk_max_tokens=600,
                 embedding_max_tokens=512,
             )
@@ -56,7 +77,7 @@ class TestSettings:
         insecure transport; local Qdrant expects no key at all.
         """
         with patch.dict(
-            os.environ, {"LLM_API_KEY": "sk-test-key", "QDRANT_API_KEY": ""}, clear=False
+            os.environ, {"GEMINI_API_KEY": "test-key", "QDRANT_API_KEY": ""}, clear=False
         ):
             s = Settings(_env_file=None)
         assert s.qdrant_api_key is None
@@ -64,7 +85,7 @@ class TestSettings:
     def test_qdrant_api_key_preserved_when_set(self) -> None:
         """A real QDRANT_API_KEY must survive the blank-to-None validator."""
         with patch.dict(
-            os.environ, {"LLM_API_KEY": "sk-test-key", "QDRANT_API_KEY": "secret"}, clear=False
+            os.environ, {"GEMINI_API_KEY": "test-key", "QDRANT_API_KEY": "secret"}, clear=False
         ):
             s = Settings(_env_file=None)
         assert s.qdrant_api_key == "secret"
@@ -74,7 +95,7 @@ class TestSettings:
 
         A mismatch is silent until Qdrant rejects every upsert.
         """
-        with patch.dict(os.environ, {"LLM_API_KEY": "sk-test-key"}, clear=False):
+        with patch.dict(os.environ, {"GEMINI_API_KEY": "test-key"}, clear=False):
             s = Settings(_env_file=None)
         assert s.embedding_model == "BAAI/bge-base-en-v1.5"
         assert s.embedding_dimension == 768
@@ -82,14 +103,14 @@ class TestSettings:
     def test_env_overrides_defaults(self) -> None:
         """Explicit environment variables should override all defaults."""
         overrides = {
-            "LLM_API_KEY": "sk-override",
+            "GEMINI_API_KEY": "test-key",
             "RETRIEVAL_TOP_K": "15",
             "RERANK_TOP_K": "3",
             "LOG_LEVEL": "DEBUG",
             "ENVIRONMENT": "prod",
         }
         with patch.dict(os.environ, overrides, clear=False):
-            s = Settings()
+            s = Settings(_env_file=None)
         assert s.retrieval_top_k == 15
         assert s.rerank_top_k == 3
         assert s.log_level == "DEBUG"
@@ -97,16 +118,18 @@ class TestSettings:
 
     def test_get_settings_is_cached(self) -> None:
         """get_settings() must return the same instance on repeated calls."""
-        with patch.dict(os.environ, {"LLM_API_KEY": "sk-cache-test"}, clear=False):
+        # Env vars beat infra/.env, so the developer's provider settings cannot interfere.
+        env = {"GEMINI_API_KEY": "test-key", "LLM_PROVIDER": "gemini", "LLM_FALLBACK_PROVIDER": ""}
+        with patch.dict(os.environ, env, clear=False):
             a = get_settings()
             b = get_settings()
         assert a is b
 
     def test_invalid_environment_value_raises(self) -> None:
         """environment must be 'dev' or 'prod'; any other value raises ValidationError."""
-        with patch.dict(os.environ, {"LLM_API_KEY": "sk-x", "ENVIRONMENT": "staging"}, clear=False):
+        with patch.dict(os.environ, {"GEMINI_API_KEY": "k", "ENVIRONMENT": "staging"}, clear=False):
             with pytest.raises(ValidationError):
-                Settings()
+                Settings(_env_file=None)
 
 
 class TestGetLogger:

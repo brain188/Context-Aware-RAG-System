@@ -12,13 +12,14 @@ import pytest_asyncio
 from fakeredis import FakeAsyncRedis
 
 from app.config import Settings
+from app.llm.base import parse_structured
 from app.retrieval.hybrid_retriever import HybridRetriever
 from app.retrieval.reranker import Reranker
 from app.retrieval.sparse_encoder import BM25SparseEncoder
 from evaluation import compare as compare_cli
 from evaluation.compare import compare
 from evaluation.dataset import EvalQuestion, ExpectedSource
-from evaluation.judge import AnswerJudge, Excerpt, build_judge_prompt, parse_judge_reply
+from evaluation.judge import AnswerJudge, Excerpt, build_judge_prompt
 from evaluation.metrics import Observation
 from evaluation.report import build_report, render_markdown, report_paths, write_report
 from evaluation.run_eval import eval_settings, evaluate, parse_args
@@ -120,9 +121,9 @@ class _JudgeLLM:
     def __init__(self, reply: str) -> None:
         self.reply = reply
 
-    async def complete(self, *, system: str, prompt: str, max_tokens: int, request_id: str) -> str:
+    async def generate_structured(self, *, system, prompt, schema, max_tokens, request_id):
         self.prompt = prompt
-        return self.reply
+        return parse_structured(self.reply, schema)
 
 
 class TestJudge:
@@ -140,8 +141,10 @@ class TestJudge:
             ("I think it is fine.", False),
         ],
     )
-    def test_parse_reply(self, reply: str, ok: bool) -> None:
-        assert (parse_judge_reply(reply) is not None) is ok
+    @pytest.mark.asyncio
+    async def test_unusable_replies_give_no_verdict(self, reply: str, ok: bool) -> None:
+        verdict = await AnswerJudge(_JudgeLLM(reply)).judge("Q?", "A [S1].", [], "r")
+        assert (verdict is not None) is ok
 
     @pytest.mark.asyncio
     async def test_judge_scores_land_in_the_metrics(self, eval_services) -> None:

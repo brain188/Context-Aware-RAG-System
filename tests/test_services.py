@@ -4,17 +4,14 @@ import json
 import time
 import uuid
 from pathlib import Path
-from types import SimpleNamespace
 from typing import Any
 
-import anthropic
-import httpx
 import pytest
 from fakeredis import FakeAsyncRedis, FakeServer
 
 from app.config import Settings
 from app.errors import IngestRequestError
-from app.llm import AnthropicLLM, LLMError
+from app.llm import LLMError
 from app.models import Citation, IngestRequest, RetrievalFilter, ScoredChunk
 from app.retrieval.grader import RetrievalGrader
 from app.services.conversation import ConversationStore, QueryRewriter, Turn
@@ -93,7 +90,7 @@ class TestQueryRewriter:
     @pytest.mark.asyncio
     async def test_llm_failure_falls_back_to_the_question(self, settings: Settings) -> None:
         class BrokenLLM(FakeLLM):
-            async def complete(self, **kwargs: Any) -> str:
+            async def generate(self, **kwargs: Any) -> Any:
                 raise LLMError("down")
 
         history = [Turn(question="q", answer="a")]
@@ -289,7 +286,7 @@ class TestIndexVersion:
     def test_fingerprint_tracks_prompt_and_model(self, tmp_path: Path) -> None:
         base = settings_fingerprint(make_settings(tmp_path))
         assert settings_fingerprint(make_settings(tmp_path, prompt_version="v2")) != base
-        assert settings_fingerprint(make_settings(tmp_path, llm_model="other")) != base
+        assert settings_fingerprint(make_settings(tmp_path, llm_generation_model="other")) != base
         assert settings_fingerprint(make_settings(tmp_path, log_level="DEBUG")) == base
 
 
@@ -336,53 +333,3 @@ class TestIngestJobPaths:
         manager._is_ingested = _indexed
         with pytest.raises(IngestRequestError, match="force_reingest"):
             await manager.submit(IngestRequest(source_path="book.pdf", book_title="B"), "r")
-
-
-# ---------------------------------------------------------------------------
-# Anthropic wrapper (SDK client faked)
-# ---------------------------------------------------------------------------
-
-
-class _FakeMessages:
-    def __init__(self, result: Any) -> None:
-        self._result = result
-
-    async def create(self, **kwargs: Any) -> Any:
-        if isinstance(self._result, Exception):
-            raise self._result
-        return self._result
-
-
-def _llm_with(result: Any, tmp_path: Path) -> AnthropicLLM:
-    client = SimpleNamespace(messages=_FakeMessages(result))
-    return AnthropicLLM(make_settings(tmp_path), client=client)  # type: ignore[arg-type]
-
-
-def _message(text: str, stop_reason: str = "end_turn") -> Any:
-    return SimpleNamespace(
-        content=[SimpleNamespace(type="text", text=text)],
-        stop_reason=stop_reason,
-        usage=SimpleNamespace(input_tokens=10, output_tokens=5),
-    )
-
-
-class TestAnthropicLLM:
-    @pytest.mark.asyncio
-    async def test_returns_reply_text(self, tmp_path: Path) -> None:
-        llm = _llm_with(_message(" correct "), tmp_path)
-        assert (
-            await llm.complete(system="s", prompt="p", max_tokens=10, request_id="r") == "correct"
-        )
-
-    @pytest.mark.asyncio
-    async def test_refusal_raises(self, tmp_path: Path) -> None:
-        llm = _llm_with(_message("", stop_reason="refusal"), tmp_path)
-        with pytest.raises(LLMError, match="declined"):
-            await llm.complete(system="s", prompt="p", max_tokens=10, request_id="r")
-
-    @pytest.mark.asyncio
-    async def test_sdk_errors_become_llm_errors(self, tmp_path: Path) -> None:
-        error = anthropic.APIConnectionError(request=httpx.Request("POST", "https://api.test"))
-        llm = _llm_with(error, tmp_path)
-        with pytest.raises(LLMError, match="Could not reach"):
-            await llm.complete(system="s", prompt="p", max_tokens=10, request_id="r")

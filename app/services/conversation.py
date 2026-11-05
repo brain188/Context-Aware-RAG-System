@@ -101,7 +101,7 @@ class QueryRewriter:
             history=_format_history(history), question=question
         )
         try:
-            reply = await self._llm.complete(
+            reply = await self._llm.generate(
                 system=system, prompt=prompt, max_tokens=self._max_tokens, request_id=request_id
             )
         except LLMError as exc:
@@ -111,7 +111,7 @@ class QueryRewriter:
                 extra={"request_id": request_id},
             )
             return question
-        rewritten = " ".join(reply.split()).strip("\"'")
+        rewritten = " ".join(reply.text.split()).strip("\"'")
         if not rewritten:
             return question
         logger.info(
