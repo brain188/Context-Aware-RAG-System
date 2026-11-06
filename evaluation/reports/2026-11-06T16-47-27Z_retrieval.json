@@ -1,0 +1,3841 @@
+{
+  "run": {
+    "started_at": "2026-11-06T16:47:27Z",
+    "mode": "retrieval",
+    "git": {
+      "commit": "5bf3488",
+      "dirty": true
+    },
+    "questions_file": "eval_questions.jsonl",
+    "question_count": 15,
+    "selection": {
+      "ids": null,
+      "tags": [
+        "keyword"
+      ],
+      "overrides": {}
+    },
+    "config": {
+      "embedding_model": "BAAI/bge-base-en-v1.5",
+      "embedding_query_instruction": "Represent this sentence for searching relevant passages: ",
+      "reranker_model": "BAAI/bge-reranker-base",
+      "llm_provider": "gemini",
+      "llm_generation_model": "gemini-3.8-flash",
+      "llm_fast_model": "gemini-3.5-flash-lite",
+      "llm_generation_thinking": "low",
+      "llm_fast_thinking": "minimal",
+      "llm_fallback_provider": "groq",
+      "llm_temperature": null,
+      "prompt_version": "v2",
+      "retrieval_mode": "hybrid",
+      "retrieval_top_k": 20,
+      "rerank_top_k": 5,
+      "rrf_k": 60,
+      "grade_min_rerank_score": 0.005,
+      "grader_max_retries": 1,
+      "chunk_min_tokens": 100,
+      "chunk_max_tokens": 512,
+      "chunk_overlap_tokens": 50,
+      "index_version": "89e8799055b5-438"
+    }
+  },
+  "summary": {
+    "candidate_recall": {
+      "mean": 1.0,
+      "n": 15
+    },
+    "errored": {
+      "mean": 0.0,
+      "n": 15
+    },
+    "hit@1": {
+      "mean": 0.6667,
+      "n": 15
+    },
+    "hit@k": {
+      "mean": 1.0,
+      "n": 15
+    },
+    "mrr": {
+      "mean": 0.8222,
+      "n": 15
+    },
+    "precision@k": {
+      "mean": 0.5067,
+      "n": 15
+    },
+    "recall@k": {
+      "mean": 1.0,
+      "n": 15
+    }
+  },
+  "by_tag": {
+    "data-science": {
+      "candidate_recall": {
+        "mean": 1.0,
+        "n": 10
+      },
+      "errored": {
+        "mean": 0.0,
+        "n": 10
+      },
+      "hit@1": {
+        "mean": 0.7,
+        "n": 10
+      },
+      "hit@k": {
+        "mean": 1.0,
+        "n": 10
+      },
+      "mrr": {
+        "mean": 0.8333,
+        "n": 10
+      },
+      "precision@k": {
+        "mean": 0.44,
+        "n": 10
+      },
+      "recall@k": {
+        "mean": 1.0,
+        "n": 10
+      }
+    },
+    "django": {
+      "candidate_recall": {
+        "mean": 1.0,
+        "n": 5
+      },
+      "errored": {
+        "mean": 0.0,
+        "n": 5
+      },
+      "hit@1": {
+        "mean": 0.6,
+        "n": 5
+      },
+      "hit@k": {
+        "mean": 1.0,
+        "n": 5
+      },
+      "mrr": {
+        "mean": 0.8,
+        "n": 5
+      },
+      "precision@k": {
+        "mean": 0.64,
+        "n": 5
+      },
+      "recall@k": {
+        "mean": 1.0,
+        "n": 5
+      }
+    },
+    "filtered": {
+      "candidate_recall": {
+        "mean": 1.0,
+        "n": 2
+      },
+      "errored": {
+        "mean": 0.0,
+        "n": 2
+      },
+      "hit@1": {
+        "mean": 0.5,
+        "n": 2
+      },
+      "hit@k": {
+        "mean": 1.0,
+        "n": 2
+      },
+      "mrr": {
+        "mean": 0.75,
+        "n": 2
+      },
+      "precision@k": {
+        "mean": 0.7,
+        "n": 2
+      },
+      "recall@k": {
+        "mean": 1.0,
+        "n": 2
+      }
+    },
+    "identifier": {
+      "candidate_recall": {
+        "mean": 1.0,
+        "n": 7
+      },
+      "errored": {
+        "mean": 0.0,
+        "n": 7
+      },
+      "hit@1": {
+        "mean": 0.7143,
+        "n": 7
+      },
+      "hit@k": {
+        "mean": 1.0,
+        "n": 7
+      },
+      "mrr": {
+        "mean": 0.8571,
+        "n": 7
+      },
+      "precision@k": {
+        "mean": 0.4857,
+        "n": 7
+      },
+      "recall@k": {
+        "mean": 1.0,
+        "n": 7
+      }
+    },
+    "keyword": {
+      "candidate_recall": {
+        "mean": 1.0,
+        "n": 15
+      },
+      "errored": {
+        "mean": 0.0,
+        "n": 15
+      },
+      "hit@1": {
+        "mean": 0.6667,
+        "n": 15
+      },
+      "hit@k": {
+        "mean": 1.0,
+        "n": 15
+      },
+      "mrr": {
+        "mean": 0.8222,
+        "n": 15
+      },
+      "precision@k": {
+        "mean": 0.5067,
+        "n": 15
+      },
+      "recall@k": {
+        "mean": 1.0,
+        "n": 15
+      }
+    },
+    "label": {
+      "candidate_recall": {
+        "mean": 1.0,
+        "n": 4
+      },
+      "errored": {
+        "mean": 0.0,
+        "n": 4
+      },
+      "hit@1": {
+        "mean": 0.5,
+        "n": 4
+      },
+      "hit@k": {
+        "mean": 1.0,
+        "n": 4
+      },
+      "mrr": {
+        "mean": 0.7083,
+        "n": 4
+      },
+      "precision@k": {
+        "mean": 0.35,
+        "n": 4
+      },
+      "recall@k": {
+        "mean": 1.0,
+        "n": 4
+      }
+    },
+    "seed": {
+      "candidate_recall": {
+        "mean": 1.0,
+        "n": 15
+      },
+      "errored": {
+        "mean": 0.0,
+        "n": 15
+      },
+      "hit@1": {
+        "mean": 0.6667,
+        "n": 15
+      },
+      "hit@k": {
+        "mean": 1.0,
+        "n": 15
+      },
+      "mrr": {
+        "mean": 0.8222,
+        "n": 15
+      },
+      "precision@k": {
+        "mean": 0.5067,
+        "n": 15
+      },
+      "recall@k": {
+        "mean": 1.0,
+        "n": 15
+      }
+    },
+    "term": {
+      "candidate_recall": {
+        "mean": 1.0,
+        "n": 2
+      },
+      "errored": {
+        "mean": 0.0,
+        "n": 2
+      },
+      "hit@1": {
+        "mean": 1.0,
+        "n": 2
+      },
+      "hit@k": {
+        "mean": 1.0,
+        "n": 2
+      },
+      "mrr": {
+        "mean": 1.0,
+        "n": 2
+      },
+      "precision@k": {
+        "mean": 0.7,
+        "n": 2
+      },
+      "recall@k": {
+        "mean": 1.0,
+        "n": 2
+      }
+    }
+  },
+  "results": [
+    {
+      "id": "kw-01",
+      "question": "select_related",
+      "tags": [
+        "seed",
+        "keyword",
+        "django",
+        "identifier"
+      ],
+      "answerable": true,
+      "passed": true,
+      "status": null,
+      "grade": null,
+      "error": null,
+      "answer": "",
+      "metrics": {
+        "errored": 0.0,
+        "hit@1": 1.0,
+        "hit@k": 1.0,
+        "precision@k": 0.6,
+        "recall@k": 1.0,
+        "mrr": 1.0,
+        "candidate_recall": 1.0
+      },
+      "judge": null,
+      "reranked": [
+        {
+          "chunk_id": "20fd8728-dd21-449a-a968-4c28fe51466d",
+          "book": "The Ultimate Django Guide",
+          "chapter": "11. Working with Databases",
+          "section": "Advanced Query Techniques",
+          "page_start": 210,
+          "page_end": 212
+        },
+        {
+          "chunk_id": "ccc31861-f4cf-4ac7-b9b6-e4429f9c6933",
+          "book": "The Ultimate Django Guide",
+          "chapter": "11. Working with Databases",
+          "section": "Database Optimization Tips",
+          "page_start": 217,
+          "page_end": 218
+        },
+        {
+          "chunk_id": "249c72a1-d231-466b-b735-cac71a740890",
+          "book": "The Ultimate Django Guide",
+          "chapter": "11. Working with Databases",
+          "section": "Advanced Query Techniques",
+          "page_start": 212,
+          "page_end": 213
+        },
+        {
+          "chunk_id": "8f82b4e1-c5c1-4b24-86ef-91fcf618de22",
+          "book": "The Ultimate Django Guide",
+          "chapter": "11. Working with Databases",
+          "section": "Advanced Query Techniques",
+          "page_start": 207,
+          "page_end": 209
+        },
+        {
+          "chunk_id": "effc9fa1-88d9-42d1-935f-679d88190fd1",
+          "book": "The Ultimate Django Guide",
+          "chapter": "6. Django Models",
+          "section": "Creating Relationships Between Models",
+          "page_start": 87,
+          "page_end": 89
+        }
+      ],
+      "cited": [],
+      "candidates": [
+        {
+          "chunk_id": "ccc31861-f4cf-4ac7-b9b6-e4429f9c6933",
+          "book": "The Ultimate Django Guide",
+          "chapter": "11. Working with Databases",
+          "section": "Database Optimization Tips",
+          "page_start": 217,
+          "page_end": 218
+        },
+        {
+          "chunk_id": "20fd8728-dd21-449a-a968-4c28fe51466d",
+          "book": "The Ultimate Django Guide",
+          "chapter": "11. Working with Databases",
+          "section": "Advanced Query Techniques",
+          "page_start": 210,
+          "page_end": 212
+        },
+        {
+          "chunk_id": "249c72a1-d231-466b-b735-cac71a740890",
+          "book": "The Ultimate Django Guide",
+          "chapter": "11. Working with Databases",
+          "section": "Advanced Query Techniques",
+          "page_start": 212,
+          "page_end": 213
+        },
+        {
+          "chunk_id": "6ca5a591-dfb1-492a-8f66-fff1914b72d4",
+          "book": "The Ultimate Django Guide",
+          "chapter": "11. Working with Databases",
+          "section": "Advanced Query Techniques",
+          "page_start": 213,
+          "page_end": 214
+        },
+        {
+          "chunk_id": "8f82b4e1-c5c1-4b24-86ef-91fcf618de22",
+          "book": "The Ultimate Django Guide",
+          "chapter": "11. Working with Databases",
+          "section": "Advanced Query Techniques",
+          "page_start": 207,
+          "page_end": 209
+        },
+        {
+          "chunk_id": "bc29e7aa-cfcd-4d26-9854-1c75391c0641",
+          "book": "The Ultimate Django Guide",
+          "chapter": "11. Working with Databases",
+          "section": "QuerySets and Querying the Database",
+          "page_start": 195,
+          "page_end": 197
+        },
+        {
+          "chunk_id": "8be884a5-cdd0-450d-a9d7-af71d68a2b4a",
+          "book": "Introduction to Data Science",
+          "chapter": "2 Toolboxes for Data Scientists",
+          "section": "2.6.3 Filtering Data",
+          "page_start": 31,
+          "page_end": 31
+        },
+        {
+          "chunk_id": "44fc2e20-dec9-4055-96b4-9660605c601f",
+          "book": "Introduction to Data Science",
+          "chapter": "2 Toolboxes for Data Scientists",
+          "section": "2.6.2 Selecting Data",
+          "page_start": 30,
+          "page_end": 31
+        },
+        {
+          "chunk_id": "eb94557c-1781-455c-8c96-baa7557d4b39",
+          "book": "The Ultimate Django Guide",
+          "chapter": "11. Working with Databases",
+          "section": "Performing CRUD Operations",
+          "page_start": 191,
+          "page_end": 193
+        },
+        {
+          "chunk_id": "cc5c13e8-f618-4570-b471-7be4bca5ec0c",
+          "book": "The Ultimate Django Guide",
+          "chapter": "11. Working with Databases",
+          "section": "QuerySets and Querying the Database",
+          "page_start": 197,
+          "page_end": 199
+        },
+        {
+          "chunk_id": "8ce579ca-fb6d-42f2-8426-4980a1080d47",
+          "book": "The Ultimate Django Guide",
+          "chapter": "11. Working with Databases",
+          "section": "Database Optimization Tips",
+          "page_start": 215,
+          "page_end": 217
+        },
+        {
+          "chunk_id": "effc9fa1-88d9-42d1-935f-679d88190fd1",
+          "book": "The Ultimate Django Guide",
+          "chapter": "6. Django Models",
+          "section": "Creating Relationships Between Models",
+          "page_start": 87,
+          "page_end": 89
+        },
+        {
+          "chunk_id": "b1a5e83a-c88b-4a48-b9c9-6ff4e8b58ca1",
+          "book": "The Ultimate Django Guide",
+          "chapter": "6. Django Models",
+          "section": "Using the Django ORM",
+          "page_start": 83,
+          "page_end": 85
+        },
+        {
+          "chunk_id": "6fd5541a-d468-4f12-a12c-d3f35b90e46d",
+          "book": "The Ultimate Django Guide",
+          "chapter": "6. Django Models",
+          "section": "Field Types and Options",
+          "page_start": 79,
+          "page_end": 80
+        },
+        {
+          "chunk_id": "68f40cde-e1d6-4d6c-9761-9fd33e9c461d",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.4 Centrality",
+          "page_start": 163,
+          "page_end": 164
+        },
+        {
+          "chunk_id": "7569af8f-d2cb-44dd-8fd7-e204ff869a88",
+          "book": "The Ultimate Django Guide",
+          "chapter": "11. Working with Databases",
+          "section": "Performing CRUD Operations",
+          "page_start": 190,
+          "page_end": 192
+        },
+        {
+          "chunk_id": "0ff4e731-74a8-40ca-8edc-f3e9957b555c",
+          "book": "The Ultimate Django Guide",
+          "chapter": "11. Working with Databases",
+          "section": "Using Django’s Built-in Database Functions",
+          "page_start": 203,
+          "page_end": 205
+        },
+        {
+          "chunk_id": "aeab9015-a04c-4ff5-a494-c62930b565ae",
+          "book": "The Ultimate Django Guide",
+          "chapter": "11. Working with Databases",
+          "section": "Advanced Query Techniques",
+          "page_start": 208,
+          "page_end": 210
+        },
+        {
+          "chunk_id": "be20b662-005f-42f1-ba12-9d8c9d285987",
+          "book": "The Ultimate Django Guide",
+          "chapter": "11. Working with Databases",
+          "section": "Using Django’s Built-in Database Functions",
+          "page_start": 202,
+          "page_end": 203
+        },
+        {
+          "chunk_id": "8d2aa82b-ac31-4bc5-bc56-e7dd207fa343",
+          "book": "The Ultimate Django Guide",
+          "chapter": "11. Working with Databases",
+          "section": "Using Django’s Built-in Database Functions",
+          "page_start": 200,
+          "page_end": 202
+        }
+      ],
+      "latency_ms": {
+        "retrieve": 1621.5,
+        "rerank": 23351.0
+      }
+    },
+    {
+      "id": "kw-02",
+      "question": "list_display",
+      "tags": [
+        "seed",
+        "keyword",
+        "django",
+        "identifier"
+      ],
+      "answerable": true,
+      "passed": true,
+      "status": null,
+      "grade": null,
+      "error": null,
+      "answer": "",
+      "metrics": {
+        "errored": 0.0,
+        "hit@1": 1.0,
+        "hit@k": 1.0,
+        "precision@k": 0.8,
+        "recall@k": 1.0,
+        "mrr": 1.0,
+        "candidate_recall": 1.0
+      },
+      "judge": null,
+      "reranked": [
+        {
+          "chunk_id": "67b3e969-86ac-40df-93ea-118cb2cdd90b",
+          "book": "The Ultimate Django Guide",
+          "chapter": "7. Django Admin Interface",
+          "section": "Customizing the Admin Interface",
+          "page_start": 93,
+          "page_end": 94
+        },
+        {
+          "chunk_id": "291b7fa3-a052-4a9a-9c87-7bb8fd2075e0",
+          "book": "The Ultimate Django Guide",
+          "chapter": "7. Django Admin Interface",
+          "section": "Managing Models in the Admin",
+          "page_start": 96,
+          "page_end": 98
+        },
+        {
+          "chunk_id": "6849ca1d-89d9-4d79-bb21-4225662e0bf6",
+          "book": "The Ultimate Django Guide",
+          "chapter": "7. Django Admin Interface",
+          "section": "Customizing the Admin Interface",
+          "page_start": 90,
+          "page_end": 92
+        },
+        {
+          "chunk_id": "7e66d678-ddc4-42f8-b13c-379bb47ca197",
+          "book": "The Ultimate Django Guide",
+          "chapter": "3. Creating Your First Django Project",
+          "section": "Overview of Django’s Admin Interface",
+          "page_start": 41,
+          "page_end": 42
+        },
+        {
+          "chunk_id": "13dc5a30-bd9c-4960-b307-f0aa868b7f08",
+          "book": "The Ultimate Django Guide",
+          "chapter": "8. Django Views",
+          "section": "8. Django Views",
+          "page_start": 105,
+          "page_end": 105
+        }
+      ],
+      "cited": [],
+      "candidates": [
+        {
+          "chunk_id": "67b3e969-86ac-40df-93ea-118cb2cdd90b",
+          "book": "The Ultimate Django Guide",
+          "chapter": "7. Django Admin Interface",
+          "section": "Customizing the Admin Interface",
+          "page_start": 93,
+          "page_end": 94
+        },
+        {
+          "chunk_id": "7e66d678-ddc4-42f8-b13c-379bb47ca197",
+          "book": "The Ultimate Django Guide",
+          "chapter": "3. Creating Your First Django Project",
+          "section": "Overview of Django’s Admin Interface",
+          "page_start": 41,
+          "page_end": 42
+        },
+        {
+          "chunk_id": "e5a1b719-1193-4e4f-9bd0-bc327d27754b",
+          "book": "The Ultimate Django Guide",
+          "chapter": "9. Django Templates",
+          "section": "Template Language Basics",
+          "page_start": 132,
+          "page_end": 133
+        },
+        {
+          "chunk_id": "094fabd2-3dfd-4426-9ebd-e65635addbf3",
+          "book": "Introduction to Data Science",
+          "chapter": "2 Toolboxes for Data Scientists",
+          "section": "2.6 Get Started with Python for Data Scientists",
+          "page_start": 26,
+          "page_end": 27
+        },
+        {
+          "chunk_id": "6849ca1d-89d9-4d79-bb21-4225662e0bf6",
+          "book": "The Ultimate Django Guide",
+          "chapter": "7. Django Admin Interface",
+          "section": "Customizing the Admin Interface",
+          "page_start": 90,
+          "page_end": 92
+        },
+        {
+          "chunk_id": "20fd8728-dd21-449a-a968-4c28fe51466d",
+          "book": "The Ultimate Django Guide",
+          "chapter": "11. Working with Databases",
+          "section": "Advanced Query Techniques",
+          "page_start": 210,
+          "page_end": 212
+        },
+        {
+          "chunk_id": "291b7fa3-a052-4a9a-9c87-7bb8fd2075e0",
+          "book": "The Ultimate Django Guide",
+          "chapter": "7. Django Admin Interface",
+          "section": "Managing Models in the Admin",
+          "page_start": 96,
+          "page_end": 98
+        },
+        {
+          "chunk_id": "b1bb957c-a0bc-4c37-ae06-a9cb45dbb706",
+          "book": "The Ultimate Django Guide",
+          "chapter": "11. Working with Databases",
+          "section": "QuerySets and Querying the Database",
+          "page_start": 199,
+          "page_end": 199
+        },
+        {
+          "chunk_id": "aeab9015-a04c-4ff5-a494-c62930b565ae",
+          "book": "The Ultimate Django Guide",
+          "chapter": "11. Working with Databases",
+          "section": "Advanced Query Techniques",
+          "page_start": 208,
+          "page_end": 210
+        },
+        {
+          "chunk_id": "9ba7a386-355d-4c5c-9372-dff77bd251b8",
+          "book": "The Ultimate Django Guide",
+          "chapter": "8. Django Views",
+          "section": "Rendering Templates in Views",
+          "page_start": 118,
+          "page_end": 120
+        },
+        {
+          "chunk_id": "98b7667b-9b15-4ed9-b124-1fd6f9eb6dd3",
+          "book": "The Ultimate Django Guide",
+          "chapter": "9. Django Templates",
+          "section": "Using Template Tags and Filters",
+          "page_start": 150,
+          "page_end": 152
+        },
+        {
+          "chunk_id": "3f6c635d-9031-4aa1-bcfc-b713e4667cbb",
+          "book": "The Ultimate Django Guide",
+          "chapter": "9. Django Templates",
+          "section": "Using Template Tags and Filters",
+          "page_start": 152,
+          "page_end": 152
+        },
+        {
+          "chunk_id": "249c72a1-d231-466b-b735-cac71a740890",
+          "book": "The Ultimate Django Guide",
+          "chapter": "11. Working with Databases",
+          "section": "Advanced Query Techniques",
+          "page_start": 212,
+          "page_end": 213
+        },
+        {
+          "chunk_id": "80121627-aaec-4d7d-8ce0-796cda996024",
+          "book": "Introduction to Data Science",
+          "chapter": "2 Toolboxes for Data Scientists",
+          "section": "2.6.1 Reading",
+          "page_start": 28,
+          "page_end": 30
+        },
+        {
+          "chunk_id": "13dc5a30-bd9c-4960-b307-f0aa868b7f08",
+          "book": "The Ultimate Django Guide",
+          "chapter": "8. Django Views",
+          "section": "8. Django Views",
+          "page_start": 105,
+          "page_end": 105
+        },
+        {
+          "chunk_id": "85fc7038-9077-4075-b2a6-3eccc138ec19",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.4 Centrality",
+          "page_start": 162,
+          "page_end": 162
+        },
+        {
+          "chunk_id": "be20b662-005f-42f1-ba12-9d8c9d285987",
+          "book": "The Ultimate Django Guide",
+          "chapter": "11. Working with Databases",
+          "section": "Using Django’s Built-in Database Functions",
+          "page_start": 202,
+          "page_end": 203
+        },
+        {
+          "chunk_id": "6e13fa80-b401-4fbc-bb5f-35258d901968",
+          "book": "Introduction to Data Science",
+          "chapter": "9 Recommender Systems",
+          "section": "9.5.2 User-Based Collaborative Filtering",
+          "page_start": 188,
+          "page_end": 189
+        },
+        {
+          "chunk_id": "cae4fcea-883f-436e-86be-d888acf80cf3",
+          "book": "Introduction to Data Science",
+          "chapter": "10 Statistical Natural Language Processing for Sentiment Analysis",
+          "section": "10.3 Text Representation",
+          "page_start": 198,
+          "page_end": 199
+        },
+        {
+          "chunk_id": "4ffb5f7c-c0c8-4463-acd7-9d18060e7ce2",
+          "book": "The Ultimate Django Guide",
+          "chapter": "7. Django Admin Interface",
+          "section": "Customizing the Admin Interface",
+          "page_start": 92,
+          "page_end": 93
+        }
+      ],
+      "latency_ms": {
+        "retrieve": 2576.1,
+        "rerank": 22230.9
+      }
+    },
+    {
+      "id": "kw-03",
+      "question": "AUTH_USER_MODEL",
+      "tags": [
+        "seed",
+        "keyword",
+        "django",
+        "identifier"
+      ],
+      "answerable": true,
+      "passed": true,
+      "status": null,
+      "grade": null,
+      "error": null,
+      "answer": "",
+      "metrics": {
+        "errored": 0.0,
+        "hit@1": 1.0,
+        "hit@k": 1.0,
+        "precision@k": 0.6,
+        "recall@k": 1.0,
+        "mrr": 1.0,
+        "candidate_recall": 1.0
+      },
+      "judge": null,
+      "reranked": [
+        {
+          "chunk_id": "15a8b003-9754-402b-918e-0d7064260851",
+          "book": "The Ultimate Django Guide",
+          "chapter": "12. User Authentication and Authorization",
+          "section": "Customizing User Authentication",
+          "page_start": 232,
+          "page_end": 233
+        },
+        {
+          "chunk_id": "4e97702d-e76a-4b7e-86a8-9719f0d967d8",
+          "book": "The Ultimate Django Guide",
+          "chapter": "12. User Authentication and Authorization",
+          "section": "Setting Up User Authentication",
+          "page_start": 220,
+          "page_end": 222
+        },
+        {
+          "chunk_id": "a3cef46a-6ce5-4e1b-9d53-b5d0d6c3f079",
+          "book": "The Ultimate Django Guide",
+          "chapter": "12. User Authentication and Authorization",
+          "section": "Customizing User Authentication",
+          "page_start": 230,
+          "page_end": 232
+        },
+        {
+          "chunk_id": "5c1b6e04-1b78-4d94-bc38-79d0c6baeb80",
+          "book": "The Ultimate Django Guide",
+          "chapter": "12. User Authentication and Authorization",
+          "section": "Using Django’s Built-in Authentication System",
+          "page_start": 224,
+          "page_end": 227
+        },
+        {
+          "chunk_id": "1ad9e4b5-d0de-4f29-859f-15c951c59bea",
+          "book": "The Ultimate Django Guide",
+          "chapter": "12. User Authentication and Authorization",
+          "section": "Implementing User Authorization",
+          "page_start": 237,
+          "page_end": 239
+        }
+      ],
+      "cited": [],
+      "candidates": [
+        {
+          "chunk_id": "4e97702d-e76a-4b7e-86a8-9719f0d967d8",
+          "book": "The Ultimate Django Guide",
+          "chapter": "12. User Authentication and Authorization",
+          "section": "Setting Up User Authentication",
+          "page_start": 220,
+          "page_end": 222
+        },
+        {
+          "chunk_id": "15a8b003-9754-402b-918e-0d7064260851",
+          "book": "The Ultimate Django Guide",
+          "chapter": "12. User Authentication and Authorization",
+          "section": "Customizing User Authentication",
+          "page_start": 232,
+          "page_end": 233
+        },
+        {
+          "chunk_id": "a3cef46a-6ce5-4e1b-9d53-b5d0d6c3f079",
+          "book": "The Ultimate Django Guide",
+          "chapter": "12. User Authentication and Authorization",
+          "section": "Customizing User Authentication",
+          "page_start": 230,
+          "page_end": 232
+        },
+        {
+          "chunk_id": "5c1b6e04-1b78-4d94-bc38-79d0c6baeb80",
+          "book": "The Ultimate Django Guide",
+          "chapter": "12. User Authentication and Authorization",
+          "section": "Using Django’s Built-in Authentication System",
+          "page_start": 224,
+          "page_end": 227
+        },
+        {
+          "chunk_id": "31bc3f70-cab0-4fd0-92c6-d6cbfef279cd",
+          "book": "The Ultimate Django Guide",
+          "chapter": "12. User Authentication and Authorization",
+          "section": "Customizing User Authentication",
+          "page_start": 235,
+          "page_end": 236
+        },
+        {
+          "chunk_id": "1ad9e4b5-d0de-4f29-859f-15c951c59bea",
+          "book": "The Ultimate Django Guide",
+          "chapter": "12. User Authentication and Authorization",
+          "section": "Implementing User Authorization",
+          "page_start": 237,
+          "page_end": 239
+        },
+        {
+          "chunk_id": "e36bfd51-4284-4ab4-bce1-8f2a12f6c657",
+          "book": "The Ultimate Django Guide",
+          "chapter": "Terms and Definitions",
+          "section": "Terms and Definitions",
+          "page_start": 6,
+          "page_end": 7
+        },
+        {
+          "chunk_id": "0ae30394-30b9-4652-afa8-39b6a944072e",
+          "book": "The Ultimate Django Guide",
+          "chapter": "12. User Authentication and Authorization",
+          "section": "Implementing User Authorization",
+          "page_start": 240,
+          "page_end": 243
+        },
+        {
+          "chunk_id": "337db57d-8e9c-431f-ab88-17caaee8da0d",
+          "book": "The Ultimate Django Guide",
+          "chapter": "12. User Authentication and Authorization",
+          "section": "Using Django’s Built-in Authentication System",
+          "page_start": 226,
+          "page_end": 228
+        },
+        {
+          "chunk_id": "2c78d937-83eb-4b80-b06e-f16f721645e6",
+          "book": "The Ultimate Django Guide",
+          "chapter": "12. User Authentication and Authorization",
+          "section": "Customizing User Authentication",
+          "page_start": 233,
+          "page_end": 235
+        },
+        {
+          "chunk_id": "48ede57d-fd6a-48ac-8b6b-0035923837ce",
+          "book": "The Ultimate Django Guide",
+          "chapter": "12. User Authentication and Authorization",
+          "section": "Setting Up User Authentication",
+          "page_start": 223,
+          "page_end": 224
+        },
+        {
+          "chunk_id": "76a7fa53-912c-46be-a5b6-1cc2a6d329dd",
+          "book": "The Ultimate Django Guide",
+          "chapter": "6. Django Models",
+          "section": "6. Django Models",
+          "page_start": 69,
+          "page_end": 69
+        },
+        {
+          "chunk_id": "6fd5541a-d468-4f12-a12c-d3f35b90e46d",
+          "book": "The Ultimate Django Guide",
+          "chapter": "6. Django Models",
+          "section": "Field Types and Options",
+          "page_start": 79,
+          "page_end": 80
+        },
+        {
+          "chunk_id": "fadc4b93-6e1e-4346-8fef-af845a7b113c",
+          "book": "The Ultimate Django Guide",
+          "chapter": "12. User Authentication and Authorization",
+          "section": "12. User Authentication and Authorization",
+          "page_start": 220,
+          "page_end": 220
+        },
+        {
+          "chunk_id": "e575b518-4da6-4f2d-9465-c7c32055bd3c",
+          "book": "The Ultimate Django Guide",
+          "chapter": "6. Django Models",
+          "section": "Introduction to Django Models",
+          "page_start": 69,
+          "page_end": 71
+        },
+        {
+          "chunk_id": "e022b550-552e-4ec2-8a2b-05b9631516d2",
+          "book": "The Ultimate Django Guide",
+          "chapter": "5. Django Project Configuration",
+          "section": "The settings.py File Explained",
+          "page_start": 60,
+          "page_end": 61
+        },
+        {
+          "chunk_id": "3f608928-8a47-4ded-92f5-d9a0101af812",
+          "book": "The Ultimate Django Guide",
+          "chapter": "12. User Authentication and Authorization",
+          "section": "Using Django’s Built-in Authentication System",
+          "page_start": 228,
+          "page_end": 230
+        },
+        {
+          "chunk_id": "f89bb46a-bba2-45f5-b0b1-090f0cda8297",
+          "book": "The Ultimate Django Guide",
+          "chapter": "12. User Authentication and Authorization",
+          "section": "Setting Up User Authentication",
+          "page_start": 222,
+          "page_end": 224
+        },
+        {
+          "chunk_id": "dfa51eee-11b0-49e0-b134-87bb5ea33ef2",
+          "book": "The Ultimate Django Guide",
+          "chapter": "12. User Authentication and Authorization",
+          "section": "Implementing User Authorization",
+          "page_start": 239,
+          "page_end": 241
+        },
+        {
+          "chunk_id": "fae0dcf9-7ca4-4cea-b52b-234a248a3ffe",
+          "book": "The Ultimate Django Guide",
+          "chapter": "Terms and Definitions",
+          "section": "Terms and Definitions",
+          "page_start": 6,
+          "page_end": 6
+        }
+      ],
+      "latency_ms": {
+        "retrieve": 2027.8,
+        "rerank": 19418.2
+      }
+    },
+    {
+      "id": "kw-04",
+      "question": "csrf_token",
+      "tags": [
+        "seed",
+        "keyword",
+        "django",
+        "identifier"
+      ],
+      "answerable": true,
+      "passed": true,
+      "status": null,
+      "grade": null,
+      "error": null,
+      "answer": "",
+      "metrics": {
+        "errored": 0.0,
+        "hit@1": 0.0,
+        "hit@k": 1.0,
+        "precision@k": 0.4,
+        "recall@k": 1.0,
+        "mrr": 0.5,
+        "candidate_recall": 1.0
+      },
+      "judge": null,
+      "reranked": [
+        {
+          "chunk_id": "f89bb46a-bba2-45f5-b0b1-090f0cda8297",
+          "book": "The Ultimate Django Guide",
+          "chapter": "12. User Authentication and Authorization",
+          "section": "Setting Up User Authentication",
+          "page_start": 222,
+          "page_end": 224
+        },
+        {
+          "chunk_id": "4c7f1b5d-9b42-4190-830a-b7a145fa3c2a",
+          "book": "The Ultimate Django Guide",
+          "chapter": "10. Django Forms",
+          "section": "Working with Model Forms",
+          "page_start": 166,
+          "page_end": 166
+        },
+        {
+          "chunk_id": "d8c2e5e6-b462-40f0-8f41-1c45dbefed35",
+          "book": "The Ultimate Django Guide",
+          "chapter": "7. Django Admin Interface",
+          "section": "Security Considerations",
+          "page_start": 102,
+          "page_end": 104
+        },
+        {
+          "chunk_id": "850e363f-36fe-4a9a-9456-513b3005f76f",
+          "book": "The Ultimate Django Guide",
+          "chapter": "10. Django Forms",
+          "section": "Advanced Form Processing Techniques",
+          "page_start": 177,
+          "page_end": 178
+        },
+        {
+          "chunk_id": "337db57d-8e9c-431f-ab88-17caaee8da0d",
+          "book": "The Ultimate Django Guide",
+          "chapter": "12. User Authentication and Authorization",
+          "section": "Using Django’s Built-in Authentication System",
+          "page_start": 226,
+          "page_end": 228
+        }
+      ],
+      "cited": [],
+      "candidates": [
+        {
+          "chunk_id": "4c7f1b5d-9b42-4190-830a-b7a145fa3c2a",
+          "book": "The Ultimate Django Guide",
+          "chapter": "10. Django Forms",
+          "section": "Working with Model Forms",
+          "page_start": 166,
+          "page_end": 166
+        },
+        {
+          "chunk_id": "d8c2e5e6-b462-40f0-8f41-1c45dbefed35",
+          "book": "The Ultimate Django Guide",
+          "chapter": "7. Django Admin Interface",
+          "section": "Security Considerations",
+          "page_start": 102,
+          "page_end": 104
+        },
+        {
+          "chunk_id": "31bc3f70-cab0-4fd0-92c6-d6cbfef279cd",
+          "book": "The Ultimate Django Guide",
+          "chapter": "12. User Authentication and Authorization",
+          "section": "Customizing User Authentication",
+          "page_start": 235,
+          "page_end": 236
+        },
+        {
+          "chunk_id": "850e363f-36fe-4a9a-9456-513b3005f76f",
+          "book": "The Ultimate Django Guide",
+          "chapter": "10. Django Forms",
+          "section": "Advanced Form Processing Techniques",
+          "page_start": 177,
+          "page_end": 178
+        },
+        {
+          "chunk_id": "2c78d937-83eb-4b80-b06e-f16f721645e6",
+          "book": "The Ultimate Django Guide",
+          "chapter": "12. User Authentication and Authorization",
+          "section": "Customizing User Authentication",
+          "page_start": 233,
+          "page_end": 235
+        },
+        {
+          "chunk_id": "337db57d-8e9c-431f-ab88-17caaee8da0d",
+          "book": "The Ultimate Django Guide",
+          "chapter": "12. User Authentication and Authorization",
+          "section": "Using Django’s Built-in Authentication System",
+          "page_start": 226,
+          "page_end": 228
+        },
+        {
+          "chunk_id": "50c14513-fd43-4526-81f6-1a5aa052566e",
+          "book": "The Ultimate Django Guide",
+          "chapter": "10. Django Forms",
+          "section": "Advanced Form Processing Techniques",
+          "page_start": 182,
+          "page_end": 183
+        },
+        {
+          "chunk_id": "e3e70e42-64a3-40a3-970d-b7a091618e98",
+          "book": "The Ultimate Django Guide",
+          "chapter": "10. Django Forms",
+          "section": "Form Validation and Error Handling",
+          "page_start": 160,
+          "page_end": 162
+        },
+        {
+          "chunk_id": "8da3741e-a808-4fde-b1da-cad0a40095fa",
+          "book": "The Ultimate Django Guide",
+          "chapter": "10. Django Forms",
+          "section": "Customizing Form Widgets and Layout",
+          "page_start": 170,
+          "page_end": 172
+        },
+        {
+          "chunk_id": "f89bb46a-bba2-45f5-b0b1-090f0cda8297",
+          "book": "The Ultimate Django Guide",
+          "chapter": "12. User Authentication and Authorization",
+          "section": "Setting Up User Authentication",
+          "page_start": 222,
+          "page_end": 224
+        },
+        {
+          "chunk_id": "ba32ae76-1322-400e-addc-ad63b0064619",
+          "book": "The Ultimate Django Guide",
+          "chapter": "10. Django Forms",
+          "section": "Customizing Form Widgets and Layout",
+          "page_start": 168,
+          "page_end": 170
+        },
+        {
+          "chunk_id": "8ad2aef8-ce73-4246-9817-2d40066cde49",
+          "book": "The Ultimate Django Guide",
+          "chapter": "8. Django Views",
+          "section": "Function-Based Views (FBVs)",
+          "page_start": 110,
+          "page_end": 111
+        },
+        {
+          "chunk_id": "05d1913e-d944-4208-815e-e5304453f084",
+          "book": "The Ultimate Django Guide",
+          "chapter": "10. Django Forms",
+          "section": "Introduction to Django Forms",
+          "page_start": 156,
+          "page_end": 157
+        },
+        {
+          "chunk_id": "6232fb54-79fb-47d7-a5c0-5f42f2e0aa32",
+          "book": "The Ultimate Django Guide",
+          "chapter": "5. Django Project Configuration",
+          "section": "The settings.py File Explained",
+          "page_start": 59,
+          "page_end": 60
+        },
+        {
+          "chunk_id": "e022b550-552e-4ec2-8a2b-05b9631516d2",
+          "book": "The Ultimate Django Guide",
+          "chapter": "5. Django Project Configuration",
+          "section": "The settings.py File Explained",
+          "page_start": 60,
+          "page_end": 61
+        },
+        {
+          "chunk_id": "3f608928-8a47-4ded-92f5-d9a0101af812",
+          "book": "The Ultimate Django Guide",
+          "chapter": "12. User Authentication and Authorization",
+          "section": "Using Django’s Built-in Authentication System",
+          "page_start": 228,
+          "page_end": 230
+        },
+        {
+          "chunk_id": "5c1b6e04-1b78-4d94-bc38-79d0c6baeb80",
+          "book": "The Ultimate Django Guide",
+          "chapter": "12. User Authentication and Authorization",
+          "section": "Using Django’s Built-in Authentication System",
+          "page_start": 224,
+          "page_end": 227
+        },
+        {
+          "chunk_id": "10f14841-98f4-4857-8c92-77ea2c439110",
+          "book": "The Ultimate Django Guide",
+          "chapter": "10. Django Forms",
+          "section": "Advanced Form Processing Techniques",
+          "page_start": 172,
+          "page_end": 174
+        },
+        {
+          "chunk_id": "0ae30394-30b9-4652-afa8-39b6a944072e",
+          "book": "The Ultimate Django Guide",
+          "chapter": "12. User Authentication and Authorization",
+          "section": "Implementing User Authorization",
+          "page_start": 240,
+          "page_end": 243
+        },
+        {
+          "chunk_id": "dd258f8e-cf18-4dcb-b534-43eda2d40ea6",
+          "book": "The Ultimate Django Guide",
+          "chapter": "10. Django Forms",
+          "section": "Working with Model Forms",
+          "page_start": 164,
+          "page_end": 166
+        }
+      ],
+      "latency_ms": {
+        "retrieve": 3411.6,
+        "rerank": 24547.9
+      }
+    },
+    {
+      "id": "kw-05",
+      "question": "ipcluster",
+      "tags": [
+        "seed",
+        "keyword",
+        "data-science",
+        "identifier"
+      ],
+      "answerable": true,
+      "passed": true,
+      "status": null,
+      "grade": null,
+      "error": null,
+      "answer": "",
+      "metrics": {
+        "errored": 0.0,
+        "hit@1": 0.0,
+        "hit@k": 1.0,
+        "precision@k": 0.4,
+        "recall@k": 1.0,
+        "mrr": 0.5,
+        "candidate_recall": 1.0
+      },
+      "judge": null,
+      "reranked": [
+        {
+          "chunk_id": "ade245ac-f8cf-4084-a6ac-b5b23da84ae0",
+          "book": "Introduction to Data Science",
+          "chapter": "11 Parallel Computing",
+          "section": "11.4 Distributed Computing",
+          "page_start": 217,
+          "page_end": 218
+        },
+        {
+          "chunk_id": "6fd3bfac-ab30-47cc-b154-82d737c7967f",
+          "book": "Introduction to Data Science",
+          "chapter": "11 Parallel Computing",
+          "section": "11.2.2 Connecting to the Cluster (The Engines)",
+          "page_start": 212,
+          "page_end": 213
+        },
+        {
+          "chunk_id": "26c67047-9447-4404-a0f9-0f338bdadb6d",
+          "book": "Introduction to Data Science",
+          "chapter": "11 Parallel Computing",
+          "section": "11.2.1 Getting Started",
+          "page_start": 211,
+          "page_end": 212
+        },
+        {
+          "chunk_id": "a01371e9-3813-4ffa-912b-d198b29fc2d3",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2 Clustering",
+          "page_start": 129,
+          "page_end": 130
+        },
+        {
+          "chunk_id": "c8e3cefb-1ef3-405e-8fe5-6ec4e4f3d90a",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2.2 What Constitutes a Good Clustering? Defining Metrics to Measure Clustering Quality",
+          "page_start": 132,
+          "page_end": 133
+        }
+      ],
+      "cited": [],
+      "candidates": [
+        {
+          "chunk_id": "6fd3bfac-ab30-47cc-b154-82d737c7967f",
+          "book": "Introduction to Data Science",
+          "chapter": "11 Parallel Computing",
+          "section": "11.2.2 Connecting to the Cluster (The Engines)",
+          "page_start": 212,
+          "page_end": 213
+        },
+        {
+          "chunk_id": "26c67047-9447-4404-a0f9-0f338bdadb6d",
+          "book": "Introduction to Data Science",
+          "chapter": "11 Parallel Computing",
+          "section": "11.2.1 Getting Started",
+          "page_start": 211,
+          "page_end": 212
+        },
+        {
+          "chunk_id": "ade245ac-f8cf-4084-a6ac-b5b23da84ae0",
+          "book": "Introduction to Data Science",
+          "chapter": "11 Parallel Computing",
+          "section": "11.4 Distributed Computing",
+          "page_start": 217,
+          "page_end": 218
+        },
+        {
+          "chunk_id": "925f108f-5c75-4aba-bea7-beb4c13a4d83",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2.3 Taxonomies of Clustering Techniques",
+          "page_start": 143,
+          "page_end": 144
+        },
+        {
+          "chunk_id": "a01371e9-3813-4ffa-912b-d198b29fc2d3",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2 Clustering",
+          "page_start": 129,
+          "page_end": 130
+        },
+        {
+          "chunk_id": "8900e9f8-fbab-40d9-8453-32bfecb7f526",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2.3 Taxonomies of Clustering Techniques",
+          "page_start": 133,
+          "page_end": 134
+        },
+        {
+          "chunk_id": "94f023b9-3343-4d2c-a291-39d269732592",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2.3 Taxonomies of Clustering Techniques",
+          "page_start": 140,
+          "page_end": 141
+        },
+        {
+          "chunk_id": "2ff7fa5f-4e8a-47b6-b4f7-5b34aba7ae33",
+          "book": "Introduction to Data Science",
+          "chapter": "11 Parallel Computing",
+          "section": "11.6 Conclusions",
+          "page_start": 224,
+          "page_end": 225
+        },
+        {
+          "chunk_id": "f016432a-4ef8-44bd-bd37-f7f3b41a8132",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2.2 What Constitutes a Good Clustering? Defining Metrics to Measure Clustering Quality",
+          "page_start": 130,
+          "page_end": 131
+        },
+        {
+          "chunk_id": "00225793-1ed7-4460-80cc-474910d251a8",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2.3 Taxonomies of Clustering Techniques",
+          "page_start": 138,
+          "page_end": 138
+        },
+        {
+          "chunk_id": "40306bcb-f452-4802-af2e-fe4418a2c903",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2.3 Taxonomies of Clustering Techniques",
+          "page_start": 134,
+          "page_end": 135
+        },
+        {
+          "chunk_id": "2a6ac89d-7404-453a-90be-3c9dbad4ba38",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2.3 Taxonomies of Clustering Techniques",
+          "page_start": 144,
+          "page_end": 145
+        },
+        {
+          "chunk_id": "c8e3cefb-1ef3-405e-8fe5-6ec4e4f3d90a",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2.2 What Constitutes a Good Clustering? Defining Metrics to Measure Clustering Quality",
+          "page_start": 132,
+          "page_end": 133
+        },
+        {
+          "chunk_id": "67be2be2-7e39-4d18-8c7f-9a65f2b10557",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2.3 Taxonomies of Clustering Techniques",
+          "page_start": 141,
+          "page_end": 143
+        },
+        {
+          "chunk_id": "968a61f4-cffa-46ab-95d9-1dbaebb777f0",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2.3 Taxonomies of Clustering Techniques",
+          "page_start": 138,
+          "page_end": 139
+        },
+        {
+          "chunk_id": "2657258a-d045-4cf8-b8a4-c9c210e4d08a",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2.3 Taxonomies of Clustering Techniques",
+          "page_start": 135,
+          "page_end": 136
+        },
+        {
+          "chunk_id": "dafc362d-40c8-4bf5-843f-b0e62b511362",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.1 Introduction",
+          "page_start": 153,
+          "page_end": 154
+        },
+        {
+          "chunk_id": "34337f04-972e-4abb-a74f-d9759f63a396",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2.3 Taxonomies of Clustering Techniques",
+          "page_start": 136,
+          "page_end": 137
+        },
+        {
+          "chunk_id": "806be8d4-bfe8-4900-87c0-a836453586c4",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.4 Conclusions",
+          "page_start": 151,
+          "page_end": 152
+        },
+        {
+          "chunk_id": "73481ac4-8ebb-4b05-b35f-249124df0c08",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2.3 Taxonomies of Clustering Techniques",
+          "page_start": 137,
+          "page_end": 138
+        }
+      ],
+      "latency_ms": {
+        "retrieve": 2710.5,
+        "rerank": 26121.0
+      }
+    },
+    {
+      "id": "kw-06",
+      "question": "ego_graph",
+      "tags": [
+        "seed",
+        "keyword",
+        "data-science",
+        "identifier"
+      ],
+      "answerable": true,
+      "passed": true,
+      "status": null,
+      "grade": null,
+      "error": null,
+      "answer": "",
+      "metrics": {
+        "errored": 0.0,
+        "hit@1": 1.0,
+        "hit@k": 1.0,
+        "precision@k": 0.4,
+        "recall@k": 1.0,
+        "mrr": 1.0,
+        "candidate_recall": 1.0
+      },
+      "judge": null,
+      "reranked": [
+        {
+          "chunk_id": "a7da609f-0cd0-47ca-a7de-9fb194e82562",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.5 Ego-Networks",
+          "page_start": 169,
+          "page_end": 170
+        },
+        {
+          "chunk_id": "a9db05d7-f138-4717-8f98-7b88b0ae633a",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.5 Ego-Networks",
+          "page_start": 169,
+          "page_end": 171
+        },
+        {
+          "chunk_id": "8e232cdb-dd25-48d2-97f3-ba599b2cec4c",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.5 Ego-Networks",
+          "page_start": 173,
+          "page_end": 174
+        },
+        {
+          "chunk_id": "a2f2f310-e271-4796-8f64-c38ec4f628e9",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.5 Ego-Networks",
+          "page_start": 172,
+          "page_end": 173
+        },
+        {
+          "chunk_id": "98c24aac-efab-42b4-b891-83478b7a3266",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.7 Conclusions",
+          "page_start": 175,
+          "page_end": 176
+        }
+      ],
+      "cited": [],
+      "candidates": [
+        {
+          "chunk_id": "a9db05d7-f138-4717-8f98-7b88b0ae633a",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.5 Ego-Networks",
+          "page_start": 169,
+          "page_end": 171
+        },
+        {
+          "chunk_id": "a7da609f-0cd0-47ca-a7de-9fb194e82562",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.5 Ego-Networks",
+          "page_start": 169,
+          "page_end": 170
+        },
+        {
+          "chunk_id": "78b010f4-17fa-4f1a-8ae4-a1247c7e4a2e",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.5 Ego-Networks",
+          "page_start": 171,
+          "page_end": 172
+        },
+        {
+          "chunk_id": "8e232cdb-dd25-48d2-97f3-ba599b2cec4c",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.5 Ego-Networks",
+          "page_start": 173,
+          "page_end": 174
+        },
+        {
+          "chunk_id": "c90579bd-460c-4a87-85f7-ef7d73d1ce89",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.5 Ego-Networks",
+          "page_start": 171,
+          "page_end": 172
+        },
+        {
+          "chunk_id": "a2f2f310-e271-4796-8f64-c38ec4f628e9",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.5 Ego-Networks",
+          "page_start": 172,
+          "page_end": 173
+        },
+        {
+          "chunk_id": "a3c070ff-076d-4dd6-b949-0e455c6f79c1",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.4.1 Drawing Centrality in Graphs",
+          "page_start": 165,
+          "page_end": 166
+        },
+        {
+          "chunk_id": "98c24aac-efab-42b4-b891-83478b7a3266",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.7 Conclusions",
+          "page_start": 175,
+          "page_end": 176
+        },
+        {
+          "chunk_id": "eab1c81a-8f83-4c6c-b012-b1afeaa40ae8",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.3.2 Practical Case: Facebook Dataset",
+          "page_start": 157,
+          "page_end": 158
+        },
+        {
+          "chunk_id": "68f40cde-e1d6-4d6c-9761-9fd33e9c461d",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.4 Centrality",
+          "page_start": 163,
+          "page_end": 164
+        },
+        {
+          "chunk_id": "0c4e6628-85c3-478d-ac81-bd3d2580dcfb",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.3 Social Network Analysis",
+          "page_start": 156,
+          "page_end": 156
+        },
+        {
+          "chunk_id": "cd7eefc7-e9ec-44e7-aa38-1868a443d7f3",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.2 Basic Definitions in Graphs",
+          "page_start": 154,
+          "page_end": 155
+        },
+        {
+          "chunk_id": "f40112b8-4073-4dc5-bf74-04bacc2f7d67",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.4 Centrality",
+          "page_start": 161,
+          "page_end": 162
+        },
+        {
+          "chunk_id": "58b09bfd-7bac-4cb5-8d72-4dac054800eb",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.6 Community Detection",
+          "page_start": 174,
+          "page_end": 175
+        },
+        {
+          "chunk_id": "bcbb69e6-c500-4b48-b57f-7ffbf9bb8f55",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.4.2 PageRank",
+          "page_start": 168,
+          "page_end": 168
+        },
+        {
+          "chunk_id": "446bdb2b-3825-409f-b334-a2f4cdbdd5eb",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.4.1 Drawing Centrality in Graphs",
+          "page_start": 164,
+          "page_end": 165
+        },
+        {
+          "chunk_id": "dafc362d-40c8-4bf5-843f-b0e62b511362",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.1 Introduction",
+          "page_start": 153,
+          "page_end": 154
+        },
+        {
+          "chunk_id": "85fc7038-9077-4075-b2a6-3eccc138ec19",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.4 Centrality",
+          "page_start": 162,
+          "page_end": 162
+        },
+        {
+          "chunk_id": "9d88d9e5-62be-4dc0-987d-241f57737ae3",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.3.2 Practical Case: Facebook Dataset",
+          "page_start": 157,
+          "page_end": 157
+        },
+        {
+          "chunk_id": "5cc52830-90be-40a7-ae20-5bd0bed94ab8",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.4 Centrality",
+          "page_start": 162,
+          "page_end": 162
+        }
+      ],
+      "latency_ms": {
+        "retrieve": 5416.5,
+        "rerank": 26889.3
+      }
+    },
+    {
+      "id": "kw-07",
+      "question": "groupby",
+      "tags": [
+        "seed",
+        "keyword",
+        "data-science",
+        "identifier"
+      ],
+      "answerable": true,
+      "passed": true,
+      "status": null,
+      "grade": null,
+      "error": null,
+      "answer": "",
+      "metrics": {
+        "errored": 0.0,
+        "hit@1": 1.0,
+        "hit@k": 1.0,
+        "precision@k": 0.2,
+        "recall@k": 1.0,
+        "mrr": 1.0,
+        "candidate_recall": 1.0
+      },
+      "judge": null,
+      "reranked": [
+        {
+          "chunk_id": "10da6c2d-cc43-4c46-8971-c928fcf795ae",
+          "book": "Introduction to Data Science",
+          "chapter": "2 Toolboxes for Data Scientists",
+          "section": "2.6.7 Grouping Data",
+          "page_start": 37,
+          "page_end": 38
+        },
+        {
+          "chunk_id": "ab7c43a5-7531-47ed-8e51-b96740647e91",
+          "book": "Introduction to Data Science",
+          "chapter": "3 Descriptive Statistics",
+          "section": "3.2.1 The Adult Example",
+          "page_start": 45,
+          "page_end": 46
+        },
+        {
+          "chunk_id": "8409ad6b-5911-4244-8b94-5d58c6d6c1e9",
+          "book": "Introduction to Data Science",
+          "chapter": "9 Recommender Systems",
+          "section": "9.5.2 User-Based Collaborative Filtering",
+          "page_start": 187,
+          "page_end": 188
+        },
+        {
+          "chunk_id": "b3c0ebf0-2037-4a2d-8b28-a79414918cea",
+          "book": "Introduction to Data Science",
+          "chapter": "4 Statistical Inference",
+          "section": "4.3.1 Point Estimates",
+          "page_start": 67,
+          "page_end": 67
+        },
+        {
+          "chunk_id": "a01371e9-3813-4ffa-912b-d198b29fc2d3",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2 Clustering",
+          "page_start": 129,
+          "page_end": 130
+        }
+      ],
+      "cited": [],
+      "candidates": [
+        {
+          "chunk_id": "10da6c2d-cc43-4c46-8971-c928fcf795ae",
+          "book": "Introduction to Data Science",
+          "chapter": "2 Toolboxes for Data Scientists",
+          "section": "2.6.7 Grouping Data",
+          "page_start": 37,
+          "page_end": 38
+        },
+        {
+          "chunk_id": "ab7c43a5-7531-47ed-8e51-b96740647e91",
+          "book": "Introduction to Data Science",
+          "chapter": "3 Descriptive Statistics",
+          "section": "3.2.1 The Adult Example",
+          "page_start": 45,
+          "page_end": 46
+        },
+        {
+          "chunk_id": "a01371e9-3813-4ffa-912b-d198b29fc2d3",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2 Clustering",
+          "page_start": 129,
+          "page_end": 130
+        },
+        {
+          "chunk_id": "8409ad6b-5911-4244-8b94-5d58c6d6c1e9",
+          "book": "Introduction to Data Science",
+          "chapter": "9 Recommender Systems",
+          "section": "9.5.2 User-Based Collaborative Filtering",
+          "page_start": 187,
+          "page_end": 188
+        },
+        {
+          "chunk_id": "b3c0ebf0-2037-4a2d-8b28-a79414918cea",
+          "book": "Introduction to Data Science",
+          "chapter": "4 Statistical Inference",
+          "section": "4.3.1 Point Estimates",
+          "page_start": 67,
+          "page_end": 67
+        },
+        {
+          "chunk_id": "094fabd2-3dfd-4426-9ebd-e65635addbf3",
+          "book": "Introduction to Data Science",
+          "chapter": "2 Toolboxes for Data Scientists",
+          "section": "2.6 Get Started with Python for Data Scientists",
+          "page_start": 26,
+          "page_end": 27
+        },
+        {
+          "chunk_id": "925f108f-5c75-4aba-bea7-beb4c13a4d83",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2.3 Taxonomies of Clustering Techniques",
+          "page_start": 143,
+          "page_end": 144
+        },
+        {
+          "chunk_id": "2657258a-d045-4cf8-b8a4-c9c210e4d08a",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2.3 Taxonomies of Clustering Techniques",
+          "page_start": 135,
+          "page_end": 136
+        },
+        {
+          "chunk_id": "514ce8fd-0b28-4509-b331-d4e0ea0076f0",
+          "book": "Introduction to Data Science",
+          "chapter": "9 Recommender Systems",
+          "section": "9.5.1 MovieLens Dataset",
+          "page_start": 181,
+          "page_end": 183
+        },
+        {
+          "chunk_id": "2a6ac89d-7404-453a-90be-3c9dbad4ba38",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2.3 Taxonomies of Clustering Techniques",
+          "page_start": 144,
+          "page_end": 145
+        },
+        {
+          "chunk_id": "40306bcb-f452-4802-af2e-fe4418a2c903",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2.3 Taxonomies of Clustering Techniques",
+          "page_start": 134,
+          "page_end": 135
+        },
+        {
+          "chunk_id": "df198cfa-cbb8-4cfb-a801-3d57107836cc",
+          "book": "Introduction to Data Science",
+          "chapter": "9 Recommender Systems",
+          "section": "9.5.1 MovieLens Dataset",
+          "page_start": 183,
+          "page_end": 183
+        },
+        {
+          "chunk_id": "94f023b9-3343-4d2c-a291-39d269732592",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2.3 Taxonomies of Clustering Techniques",
+          "page_start": 140,
+          "page_end": 141
+        },
+        {
+          "chunk_id": "4e672ecd-33df-4df6-ba54-87c83f8177e3",
+          "book": "Introduction to Data Science",
+          "chapter": "Preface",
+          "section": "Organization and Feature of the Book",
+          "page_start": 6,
+          "page_end": 6
+        },
+        {
+          "chunk_id": "80121627-aaec-4d7d-8ce0-796cda996024",
+          "book": "Introduction to Data Science",
+          "chapter": "2 Toolboxes for Data Scientists",
+          "section": "2.6.1 Reading",
+          "page_start": 28,
+          "page_end": 30
+        },
+        {
+          "chunk_id": "d7609ddd-b48a-4d22-8a38-4971dbf18f7e",
+          "book": "Introduction to Data Science",
+          "chapter": "10 Statistical Natural Language Processing for Sentiment Analysis",
+          "section": "10.3.1 Bi-Grams and n-Grams",
+          "page_start": 201,
+          "page_end": 202
+        },
+        {
+          "chunk_id": "8900e9f8-fbab-40d9-8453-32bfecb7f526",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2.3 Taxonomies of Clustering Techniques",
+          "page_start": 133,
+          "page_end": 134
+        },
+        {
+          "chunk_id": "c201481b-dbba-4c1f-bdd2-47b4b0321228",
+          "book": "Introduction to Data Science",
+          "chapter": "9 Recommender Systems",
+          "section": "9.5.2 User-Based Collaborative Filtering",
+          "page_start": 188,
+          "page_end": 188
+        },
+        {
+          "chunk_id": "62f4e06c-facc-42e1-b088-5be8931704b3",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2.2 What Constitutes a Good Clustering? Defining Metrics to Measure Clustering Quality",
+          "page_start": 131,
+          "page_end": 132
+        },
+        {
+          "chunk_id": "93428c00-3870-4268-b21c-c58e7d841704",
+          "book": "Introduction to Data Science",
+          "chapter": "2 Toolboxes for Data Scientists",
+          "section": "2.6.5 Manipulating Data",
+          "page_start": 32,
+          "page_end": 33
+        }
+      ],
+      "latency_ms": {
+        "retrieve": 4490.5,
+        "rerank": 26681.3
+      }
+    },
+    {
+      "id": "kw-08",
+      "question": "silhouette coefficient",
+      "tags": [
+        "seed",
+        "keyword",
+        "data-science",
+        "term"
+      ],
+      "answerable": true,
+      "passed": true,
+      "status": null,
+      "grade": null,
+      "error": null,
+      "answer": "",
+      "metrics": {
+        "errored": 0.0,
+        "hit@1": 1.0,
+        "hit@k": 1.0,
+        "precision@k": 0.6,
+        "recall@k": 1.0,
+        "mrr": 1.0,
+        "candidate_recall": 1.0
+      },
+      "judge": null,
+      "reranked": [
+        {
+          "chunk_id": "3206abc1-516c-44a4-835f-ca76cc62b4f2",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2.2 What Constitutes a Good Clustering? Defining Metrics to Measure Clustering Quality",
+          "page_start": 133,
+          "page_end": 133
+        },
+        {
+          "chunk_id": "c8e3cefb-1ef3-405e-8fe5-6ec4e4f3d90a",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2.2 What Constitutes a Good Clustering? Defining Metrics to Measure Clustering Quality",
+          "page_start": 132,
+          "page_end": 133
+        },
+        {
+          "chunk_id": "f016432a-4ef8-44bd-bd37-f7f3b41a8132",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2.2 What Constitutes a Good Clustering? Defining Metrics to Measure Clustering Quality",
+          "page_start": 130,
+          "page_end": 131
+        },
+        {
+          "chunk_id": "5d6df93d-7b2e-4d64-a1e1-a2721ded1a06",
+          "book": "Introduction to Data Science",
+          "chapter": "6 Regression Analysis",
+          "section": "6.2.3 Sparse Model",
+          "page_start": 122,
+          "page_end": 122
+        },
+        {
+          "chunk_id": "4f4a3b44-ed08-4e6e-92a8-6857927614d1",
+          "book": "Introduction to Data Science",
+          "chapter": "6 Regression Analysis",
+          "section": "6.2.3 Sparse Model",
+          "page_start": 120,
+          "page_end": 121
+        }
+      ],
+      "cited": [],
+      "candidates": [
+        {
+          "chunk_id": "3206abc1-516c-44a4-835f-ca76cc62b4f2",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2.2 What Constitutes a Good Clustering? Defining Metrics to Measure Clustering Quality",
+          "page_start": 133,
+          "page_end": 133
+        },
+        {
+          "chunk_id": "c8e3cefb-1ef3-405e-8fe5-6ec4e4f3d90a",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2.2 What Constitutes a Good Clustering? Defining Metrics to Measure Clustering Quality",
+          "page_start": 132,
+          "page_end": 133
+        },
+        {
+          "chunk_id": "e8c3ccd9-b79b-42bd-9e59-ef96e7a360b5",
+          "book": "Introduction to Data Science",
+          "chapter": "6 Regression Analysis",
+          "section": "6.2.1 Simple Linear Regression",
+          "page_start": 115,
+          "page_end": 116
+        },
+        {
+          "chunk_id": "4f4a3b44-ed08-4e6e-92a8-6857927614d1",
+          "book": "Introduction to Data Science",
+          "chapter": "6 Regression Analysis",
+          "section": "6.2.3 Sparse Model",
+          "page_start": 120,
+          "page_end": 121
+        },
+        {
+          "chunk_id": "f016432a-4ef8-44bd-bd37-f7f3b41a8132",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2.2 What Constitutes a Good Clustering? Defining Metrics to Measure Clustering Quality",
+          "page_start": 130,
+          "page_end": 131
+        },
+        {
+          "chunk_id": "2fbbfc5e-d96f-47a7-827f-b846a4e0bb97",
+          "book": "Introduction to Data Science",
+          "chapter": "3 Descriptive Statistics",
+          "section": "3.3.4 Measuring Asymmetry: Skewness and Pearson's Median Skewness Coefficient",
+          "page_start": 55,
+          "page_end": 56
+        },
+        {
+          "chunk_id": "28826108-c8ad-43b8-b816-80e232c73dd5",
+          "book": "Introduction to Data Science",
+          "chapter": "6 Regression Analysis",
+          "section": "6 Regression Analysis",
+          "page_start": 110,
+          "page_end": 110
+        },
+        {
+          "chunk_id": "f07a9463-8921-444c-ae9e-213940d46752",
+          "book": "Introduction to Data Science",
+          "chapter": "3 Descriptive Statistics",
+          "section": "3.3.4 Measuring Asymmetry: Skewness and Pearson's Median Skewness Coefficient",
+          "page_start": 56,
+          "page_end": 56
+        },
+        {
+          "chunk_id": "94f023b9-3343-4d2c-a291-39d269732592",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2.3 Taxonomies of Clustering Techniques",
+          "page_start": 140,
+          "page_end": 141
+        },
+        {
+          "chunk_id": "cf0e40c5-73bd-44ab-bd84-afb9ab8d9645",
+          "book": "Introduction to Data Science",
+          "chapter": "3 Descriptive Statistics",
+          "section": "3.4.2 Covariance, and Pearson's and Spearman's Rank Correlation",
+          "page_start": 63,
+          "page_end": 64
+        },
+        {
+          "chunk_id": "056c11b6-2044-49ef-a997-6877d0366b9a",
+          "book": "Introduction to Data Science",
+          "chapter": "6 Regression Analysis",
+          "section": "6.2.1 Simple Linear Regression",
+          "page_start": 111,
+          "page_end": 112
+        },
+        {
+          "chunk_id": "5d6df93d-7b2e-4d64-a1e1-a2721ded1a06",
+          "book": "Introduction to Data Science",
+          "chapter": "6 Regression Analysis",
+          "section": "6.2.3 Sparse Model",
+          "page_start": 122,
+          "page_end": 122
+        },
+        {
+          "chunk_id": "00225793-1ed7-4460-80cc-474910d251a8",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2.3 Taxonomies of Clustering Techniques",
+          "page_start": 138,
+          "page_end": 138
+        },
+        {
+          "chunk_id": "8409ad6b-5911-4244-8b94-5d58c6d6c1e9",
+          "book": "Introduction to Data Science",
+          "chapter": "9 Recommender Systems",
+          "section": "9.5.2 User-Based Collaborative Filtering",
+          "page_start": 187,
+          "page_end": 188
+        },
+        {
+          "chunk_id": "39fe1479-9723-494c-b984-60b585204299",
+          "book": "Introduction to Data Science",
+          "chapter": "5 Supervised Learning",
+          "section": "5.7.2 Support Vector Machines",
+          "page_start": 102,
+          "page_end": 103
+        },
+        {
+          "chunk_id": "e3d6c8ee-7238-408f-9173-bd6c22b15402",
+          "book": "Introduction to Data Science",
+          "chapter": "6 Regression Analysis",
+          "section": "6.2.3 Sparse Model",
+          "page_start": 118,
+          "page_end": 120
+        },
+        {
+          "chunk_id": "52db8319-70cd-40f7-8f3c-b963b3b3ffae",
+          "book": "Introduction to Data Science",
+          "chapter": "9 Recommender Systems",
+          "section": "9.5.2 User-Based Collaborative Filtering",
+          "page_start": 184,
+          "page_end": 185
+        },
+        {
+          "chunk_id": "37e259cc-5c32-45f3-af06-e32ce1b262fc",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2.1 Similarity and Distances",
+          "page_start": 130,
+          "page_end": 130
+        },
+        {
+          "chunk_id": "8bee74d7-3a00-4781-b1bf-7bc2f566ded7",
+          "book": "Introduction to Data Science",
+          "chapter": "9 Recommender Systems",
+          "section": "9.5.2 User-Based Collaborative Filtering",
+          "page_start": 186,
+          "page_end": 187
+        },
+        {
+          "chunk_id": "2acaf32d-5385-4261-a9d7-37c5295a465d",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2.3 Taxonomies of Clustering Techniques",
+          "page_start": 139,
+          "page_end": 140
+        }
+      ],
+      "latency_ms": {
+        "retrieve": 3601.0,
+        "rerank": 29660.3
+      }
+    },
+    {
+      "id": "kw-09",
+      "question": "eigenvector centrality",
+      "tags": [
+        "seed",
+        "keyword",
+        "data-science",
+        "term"
+      ],
+      "answerable": true,
+      "passed": true,
+      "status": null,
+      "grade": null,
+      "error": null,
+      "answer": "",
+      "metrics": {
+        "errored": 0.0,
+        "hit@1": 1.0,
+        "hit@k": 1.0,
+        "precision@k": 0.8,
+        "recall@k": 1.0,
+        "mrr": 1.0,
+        "candidate_recall": 1.0
+      },
+      "judge": null,
+      "reranked": [
+        {
+          "chunk_id": "d9918281-b597-4ab6-a1b4-ba42f51336d9",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.4 Centrality",
+          "page_start": 159,
+          "page_end": 160
+        },
+        {
+          "chunk_id": "5cc52830-90be-40a7-ae20-5bd0bed94ab8",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.4 Centrality",
+          "page_start": 162,
+          "page_end": 162
+        },
+        {
+          "chunk_id": "85fc7038-9077-4075-b2a6-3eccc138ec19",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.4 Centrality",
+          "page_start": 162,
+          "page_end": 162
+        },
+        {
+          "chunk_id": "f40112b8-4073-4dc5-bf74-04bacc2f7d67",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.4 Centrality",
+          "page_start": 161,
+          "page_end": 162
+        },
+        {
+          "chunk_id": "5a3998ee-0cf7-4d64-a65e-dfc227cc5bc6",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.4.2 PageRank",
+          "page_start": 166,
+          "page_end": 168
+        }
+      ],
+      "cited": [],
+      "candidates": [
+        {
+          "chunk_id": "5cc52830-90be-40a7-ae20-5bd0bed94ab8",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.4 Centrality",
+          "page_start": 162,
+          "page_end": 162
+        },
+        {
+          "chunk_id": "f40112b8-4073-4dc5-bf74-04bacc2f7d67",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.4 Centrality",
+          "page_start": 161,
+          "page_end": 162
+        },
+        {
+          "chunk_id": "74bc6e1e-b6ec-4e73-8857-26c5893bc685",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.4 Centrality",
+          "page_start": 159,
+          "page_end": 159
+        },
+        {
+          "chunk_id": "85fc7038-9077-4075-b2a6-3eccc138ec19",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.4 Centrality",
+          "page_start": 162,
+          "page_end": 162
+        },
+        {
+          "chunk_id": "5a3998ee-0cf7-4d64-a65e-dfc227cc5bc6",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.4.2 PageRank",
+          "page_start": 166,
+          "page_end": 168
+        },
+        {
+          "chunk_id": "d9918281-b597-4ab6-a1b4-ba42f51336d9",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.4 Centrality",
+          "page_start": 159,
+          "page_end": 160
+        },
+        {
+          "chunk_id": "a3c070ff-076d-4dd6-b949-0e455c6f79c1",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.4.1 Drawing Centrality in Graphs",
+          "page_start": 165,
+          "page_end": 166
+        },
+        {
+          "chunk_id": "651878e5-b0a2-4077-a444-d62d9e4f502d",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.4 Centrality",
+          "page_start": 160,
+          "page_end": 161
+        },
+        {
+          "chunk_id": "446bdb2b-3825-409f-b334-a2f4cdbdd5eb",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.4.1 Drawing Centrality in Graphs",
+          "page_start": 164,
+          "page_end": 165
+        },
+        {
+          "chunk_id": "4619ea5a-1a39-47c1-9d06-45aacb67918c",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.4 Centrality",
+          "page_start": 162,
+          "page_end": 163
+        },
+        {
+          "chunk_id": "00225793-1ed7-4460-80cc-474910d251a8",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2.3 Taxonomies of Clustering Techniques",
+          "page_start": 138,
+          "page_end": 138
+        },
+        {
+          "chunk_id": "98c24aac-efab-42b4-b891-83478b7a3266",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.7 Conclusions",
+          "page_start": 175,
+          "page_end": 176
+        },
+        {
+          "chunk_id": "a5ada04c-8b06-4d08-a612-4c39771abd6f",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.3.2 Practical Case: Facebook Dataset",
+          "page_start": 158,
+          "page_end": 159
+        },
+        {
+          "chunk_id": "a7da609f-0cd0-47ca-a7de-9fb194e82562",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.5 Ego-Networks",
+          "page_start": 169,
+          "page_end": 170
+        },
+        {
+          "chunk_id": "dafc362d-40c8-4bf5-843f-b0e62b511362",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.1 Introduction",
+          "page_start": 153,
+          "page_end": 154
+        },
+        {
+          "chunk_id": "dd5ad68e-01bc-4721-9560-8badbcb91dd4",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.4 Centrality",
+          "page_start": 164,
+          "page_end": 164
+        },
+        {
+          "chunk_id": "73481ac4-8ebb-4b05-b35f-249124df0c08",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2.3 Taxonomies of Clustering Techniques",
+          "page_start": 137,
+          "page_end": 138
+        },
+        {
+          "chunk_id": "bcbb69e6-c500-4b48-b57f-7ffbf9bb8f55",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.4.2 PageRank",
+          "page_start": 168,
+          "page_end": 168
+        },
+        {
+          "chunk_id": "67be2be2-7e39-4d18-8c7f-9a65f2b10557",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2.3 Taxonomies of Clustering Techniques",
+          "page_start": 141,
+          "page_end": 143
+        },
+        {
+          "chunk_id": "68f40cde-e1d6-4d6c-9761-9fd33e9c461d",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.4 Centrality",
+          "page_start": 163,
+          "page_end": 164
+        }
+      ],
+      "latency_ms": {
+        "retrieve": 4093.0,
+        "rerank": 24210.6
+      }
+    },
+    {
+      "id": "kw-10",
+      "question": "Fig. 8.11",
+      "tags": [
+        "seed",
+        "keyword",
+        "data-science",
+        "label"
+      ],
+      "answerable": true,
+      "passed": true,
+      "status": null,
+      "grade": null,
+      "error": null,
+      "answer": "",
+      "metrics": {
+        "errored": 0.0,
+        "hit@1": 1.0,
+        "hit@k": 1.0,
+        "precision@k": 0.4,
+        "recall@k": 1.0,
+        "mrr": 1.0,
+        "candidate_recall": 1.0
+      },
+      "judge": null,
+      "reranked": [
+        {
+          "chunk_id": "a9db05d7-f138-4717-8f98-7b88b0ae633a",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.5 Ego-Networks",
+          "page_start": 169,
+          "page_end": 171
+        },
+        {
+          "chunk_id": "a7da609f-0cd0-47ca-a7de-9fb194e82562",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.5 Ego-Networks",
+          "page_start": 169,
+          "page_end": 170
+        },
+        {
+          "chunk_id": "f43e7e0e-0d32-4d7f-a2f6-362ed45ba0d4",
+          "book": "Introduction to Data Science",
+          "chapter": "11 Parallel Computing",
+          "section": "11.2 Architecture",
+          "page_start": 210,
+          "page_end": 211
+        },
+        {
+          "chunk_id": "7d66f7ad-9336-4099-8b4d-d44fda0832ac",
+          "book": "Introduction to Data Science",
+          "chapter": "11 Parallel Computing",
+          "section": "11.5.1 A Direct View Non-Blocking Proposal",
+          "page_start": 220,
+          "page_end": 221
+        },
+        {
+          "chunk_id": "d7864e11-c8bb-41aa-adf2-6450754ec4cb",
+          "book": "Introduction to Data Science",
+          "chapter": "11 Parallel Computing",
+          "section": "11.5.2 Results",
+          "page_start": 222,
+          "page_end": 223
+        }
+      ],
+      "cited": [],
+      "candidates": [
+        {
+          "chunk_id": "d7864e11-c8bb-41aa-adf2-6450754ec4cb",
+          "book": "Introduction to Data Science",
+          "chapter": "11 Parallel Computing",
+          "section": "11.5.2 Results",
+          "page_start": 222,
+          "page_end": 223
+        },
+        {
+          "chunk_id": "f43e7e0e-0d32-4d7f-a2f6-362ed45ba0d4",
+          "book": "Introduction to Data Science",
+          "chapter": "11 Parallel Computing",
+          "section": "11.2 Architecture",
+          "page_start": 210,
+          "page_end": 211
+        },
+        {
+          "chunk_id": "d78d3733-9e37-49a5-a0fd-3203eb2f357b",
+          "book": "The Ultimate Django Guide",
+          "chapter": "11. Working with Databases",
+          "section": "11. Working with Databases",
+          "page_start": 185,
+          "page_end": 185
+        },
+        {
+          "chunk_id": "a7da609f-0cd0-47ca-a7de-9fb194e82562",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.5 Ego-Networks",
+          "page_start": 169,
+          "page_end": 170
+        },
+        {
+          "chunk_id": "a9db05d7-f138-4717-8f98-7b88b0ae633a",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.5 Ego-Networks",
+          "page_start": 169,
+          "page_end": 171
+        },
+        {
+          "chunk_id": "dafc362d-40c8-4bf5-843f-b0e62b511362",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.1 Introduction",
+          "page_start": 153,
+          "page_end": 154
+        },
+        {
+          "chunk_id": "446bdb2b-3825-409f-b334-a2f4cdbdd5eb",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.4.1 Drawing Centrality in Graphs",
+          "page_start": 164,
+          "page_end": 165
+        },
+        {
+          "chunk_id": "ebba468b-1f93-4400-ad92-9caa8c80983f",
+          "book": "Introduction to Data Science",
+          "chapter": "Preamble",
+          "section": "Front Matter",
+          "page_start": 5,
+          "page_end": 5
+        },
+        {
+          "chunk_id": "7751af6d-3f65-4f6f-b4cc-ae69c8e2aef8",
+          "book": "Introduction to Data Science",
+          "chapter": "11 Parallel Computing",
+          "section": "11.1 Introduction",
+          "page_start": 209,
+          "page_end": 210
+        },
+        {
+          "chunk_id": "bde96bc5-5214-4ea9-9758-6262a91e3a7d",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.3 Case Study",
+          "page_start": 147,
+          "page_end": 149
+        },
+        {
+          "chunk_id": "9b0fcb73-9def-4635-8f3e-821d549e9ccc",
+          "book": "Introduction to Data Science",
+          "chapter": "5 Supervised Learning",
+          "section": "5.9 A Toy Business Case",
+          "page_start": 106,
+          "page_end": 108
+        },
+        {
+          "chunk_id": "b62a455f-3402-4cb8-9d68-4446f6450101",
+          "book": "Introduction to Data Science",
+          "chapter": "Preface",
+          "section": "Supplemental Resources",
+          "page_start": 7,
+          "page_end": 8
+        },
+        {
+          "chunk_id": "94f023b9-3343-4d2c-a291-39d269732592",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2.3 Taxonomies of Clustering Techniques",
+          "page_start": 140,
+          "page_end": 141
+        },
+        {
+          "chunk_id": "7d66f7ad-9336-4099-8b4d-d44fda0832ac",
+          "book": "Introduction to Data Science",
+          "chapter": "11 Parallel Computing",
+          "section": "11.5.1 A Direct View Non-Blocking Proposal",
+          "page_start": 220,
+          "page_end": 221
+        },
+        {
+          "chunk_id": "8e232cdb-dd25-48d2-97f3-ba599b2cec4c",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.5 Ego-Networks",
+          "page_start": 173,
+          "page_end": 174
+        },
+        {
+          "chunk_id": "521e7b33-a944-4953-b720-1b3c33559227",
+          "book": "Introduction to Data Science",
+          "chapter": "3 Descriptive Statistics",
+          "section": "3.5 Conclusions",
+          "page_start": 64,
+          "page_end": 64
+        },
+        {
+          "chunk_id": "58b09bfd-7bac-4cb5-8d72-4dac054800eb",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.6 Community Detection",
+          "page_start": 174,
+          "page_end": 175
+        },
+        {
+          "chunk_id": "942bba1d-7f84-4268-9f3d-ae2a39f08dbd",
+          "book": "Introduction to Data Science",
+          "chapter": "Preface",
+          "section": "Preface",
+          "page_start": 6,
+          "page_end": 6
+        },
+        {
+          "chunk_id": "946dff36-d72c-40f7-b0a3-9e80472615dc",
+          "book": "Introduction to Data Science",
+          "chapter": "3 Descriptive Statistics",
+          "section": "3.3.5 Continuous Distribution",
+          "page_start": 56,
+          "page_end": 57
+        },
+        {
+          "chunk_id": "a2f2f310-e271-4796-8f64-c38ec4f628e9",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.5 Ego-Networks",
+          "page_start": 172,
+          "page_end": 173
+        }
+      ],
+      "latency_ms": {
+        "retrieve": 4017.6,
+        "rerank": 20789.7
+      }
+    },
+    {
+      "id": "kw-11",
+      "question": "Table 9.1",
+      "tags": [
+        "seed",
+        "keyword",
+        "data-science",
+        "label"
+      ],
+      "answerable": true,
+      "passed": true,
+      "status": null,
+      "grade": null,
+      "error": null,
+      "answer": "",
+      "metrics": {
+        "errored": 0.0,
+        "hit@1": 1.0,
+        "hit@k": 1.0,
+        "precision@k": 0.4,
+        "recall@k": 1.0,
+        "mrr": 1.0,
+        "candidate_recall": 1.0
+      },
+      "judge": null,
+      "reranked": [
+        {
+          "chunk_id": "dc6dfd21-09dd-437c-bd19-c8e2b9130cb0",
+          "book": "Introduction to Data Science",
+          "chapter": "9 Recommender Systems",
+          "section": "9.5.2 User-Based Collaborative Filtering",
+          "page_start": 183,
+          "page_end": 184
+        },
+        {
+          "chunk_id": "52db8319-70cd-40f7-8f3c-b963b3b3ffae",
+          "book": "Introduction to Data Science",
+          "chapter": "9 Recommender Systems",
+          "section": "9.5.2 User-Based Collaborative Filtering",
+          "page_start": 184,
+          "page_end": 185
+        },
+        {
+          "chunk_id": "5a71f9f3-ae1b-44db-a9e5-70a7a98b9087",
+          "book": "Introduction to Data Science",
+          "chapter": "3 Descriptive Statistics",
+          "section": "3 Descriptive Statistics",
+          "page_start": 43,
+          "page_end": 43
+        },
+        {
+          "chunk_id": "094fabd2-3dfd-4426-9ebd-e65635addbf3",
+          "book": "Introduction to Data Science",
+          "chapter": "2 Toolboxes for Data Scientists",
+          "section": "2.6 Get Started with Python for Data Scientists",
+          "page_start": 26,
+          "page_end": 27
+        },
+        {
+          "chunk_id": "f767edf6-c5d4-4278-aafa-4f9555828067",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.3 Case Study",
+          "page_start": 145,
+          "page_end": 146
+        }
+      ],
+      "cited": [],
+      "candidates": [
+        {
+          "chunk_id": "514ce8fd-0b28-4509-b331-d4e0ea0076f0",
+          "book": "Introduction to Data Science",
+          "chapter": "9 Recommender Systems",
+          "section": "9.5.1 MovieLens Dataset",
+          "page_start": 181,
+          "page_end": 183
+        },
+        {
+          "chunk_id": "094fabd2-3dfd-4426-9ebd-e65635addbf3",
+          "book": "Introduction to Data Science",
+          "chapter": "2 Toolboxes for Data Scientists",
+          "section": "2.6 Get Started with Python for Data Scientists",
+          "page_start": 26,
+          "page_end": 27
+        },
+        {
+          "chunk_id": "6fd5541a-d468-4f12-a12c-d3f35b90e46d",
+          "book": "The Ultimate Django Guide",
+          "chapter": "6. Django Models",
+          "section": "Field Types and Options",
+          "page_start": 79,
+          "page_end": 80
+        },
+        {
+          "chunk_id": "52db8319-70cd-40f7-8f3c-b963b3b3ffae",
+          "book": "Introduction to Data Science",
+          "chapter": "9 Recommender Systems",
+          "section": "9.5.2 User-Based Collaborative Filtering",
+          "page_start": 184,
+          "page_end": 185
+        },
+        {
+          "chunk_id": "8fab8944-ef7f-4972-b2ba-4d745d37c795",
+          "book": "Introduction to Data Science",
+          "chapter": "2 Toolboxes for Data Scientists",
+          "section": "2.6.9 Ranking Data",
+          "page_start": 39,
+          "page_end": 40
+        },
+        {
+          "chunk_id": "dc6dfd21-09dd-437c-bd19-c8e2b9130cb0",
+          "book": "Introduction to Data Science",
+          "chapter": "9 Recommender Systems",
+          "section": "9.5.2 User-Based Collaborative Filtering",
+          "page_start": 183,
+          "page_end": 184
+        },
+        {
+          "chunk_id": "ab7c43a5-7531-47ed-8e51-b96740647e91",
+          "book": "Introduction to Data Science",
+          "chapter": "3 Descriptive Statistics",
+          "section": "3.2.1 The Adult Example",
+          "page_start": 45,
+          "page_end": 46
+        },
+        {
+          "chunk_id": "915f455d-92e1-4715-8029-8927cee23369",
+          "book": "Introduction to Data Science",
+          "chapter": "2 Toolboxes for Data Scientists",
+          "section": "2.6.4 Filtering Missing Values",
+          "page_start": 31,
+          "page_end": 32
+        },
+        {
+          "chunk_id": "80121627-aaec-4d7d-8ce0-796cda996024",
+          "book": "Introduction to Data Science",
+          "chapter": "2 Toolboxes for Data Scientists",
+          "section": "2.6.1 Reading",
+          "page_start": 28,
+          "page_end": 30
+        },
+        {
+          "chunk_id": "ed6a3d76-7726-42a0-b107-cf6c4ad6b7bc",
+          "book": "The Ultimate Django Guide",
+          "chapter": "9. Django Templates",
+          "section": "9. Django Templates",
+          "page_start": 127,
+          "page_end": 127
+        },
+        {
+          "chunk_id": "5bccd0ba-9ff4-4316-af22-a242d2ed2039",
+          "book": "Introduction to Data Science",
+          "chapter": "9 Recommender Systems",
+          "section": "9.5.2 User-Based Collaborative Filtering",
+          "page_start": 189,
+          "page_end": 190
+        },
+        {
+          "chunk_id": "f767edf6-c5d4-4278-aafa-4f9555828067",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.3 Case Study",
+          "page_start": 145,
+          "page_end": 146
+        },
+        {
+          "chunk_id": "5a71f9f3-ae1b-44db-a9e5-70a7a98b9087",
+          "book": "Introduction to Data Science",
+          "chapter": "3 Descriptive Statistics",
+          "section": "3 Descriptive Statistics",
+          "page_start": 43,
+          "page_end": 43
+        },
+        {
+          "chunk_id": "fd3fe907-a6bd-477d-b480-31964d6ef6a5",
+          "book": "Introduction to Data Science",
+          "chapter": "9 Recommender Systems",
+          "section": "9.1 Introduction",
+          "page_start": 177,
+          "page_end": 178
+        },
+        {
+          "chunk_id": "793a3071-8cdd-4bf8-be6c-eabf37f84ef1",
+          "book": "Introduction to Data Science",
+          "chapter": "3 Descriptive Statistics",
+          "section": "3.2.1 The Adult Example",
+          "page_start": 44,
+          "page_end": 45
+        },
+        {
+          "chunk_id": "7e65da29-1049-43f2-bd60-44e037cee6ec",
+          "book": "Introduction to Data Science",
+          "chapter": "6 Regression Analysis",
+          "section": "6.3 Logistic Regression",
+          "page_start": 125,
+          "page_end": 125
+        },
+        {
+          "chunk_id": "9b0fcb73-9def-4635-8f3e-821d549e9ccc",
+          "book": "Introduction to Data Science",
+          "chapter": "5 Supervised Learning",
+          "section": "5.9 A Toy Business Case",
+          "page_start": 106,
+          "page_end": 108
+        },
+        {
+          "chunk_id": "e94a13a4-ff7f-453a-afe6-50a6b4295bf3",
+          "book": "Introduction to Data Science",
+          "chapter": "2 Toolboxes for Data Scientists",
+          "section": "2.6.1 Reading",
+          "page_start": 28,
+          "page_end": 28
+        },
+        {
+          "chunk_id": "c877be3b-8220-4875-bf9a-1b511dec5869",
+          "book": "Introduction to Data Science",
+          "chapter": "2 Toolboxes for Data Scientists",
+          "section": "2.6.8 Rearranging Data",
+          "page_start": 38,
+          "page_end": 39
+        },
+        {
+          "chunk_id": "effc9fa1-88d9-42d1-935f-679d88190fd1",
+          "book": "The Ultimate Django Guide",
+          "chapter": "6. Django Models",
+          "section": "Creating Relationships Between Models",
+          "page_start": 87,
+          "page_end": 89
+        }
+      ],
+      "latency_ms": {
+        "retrieve": 8932.1,
+        "rerank": 21789.0
+      }
+    },
+    {
+      "id": "kw-12",
+      "question": "Sect. 11.2.1",
+      "tags": [
+        "seed",
+        "keyword",
+        "data-science",
+        "label"
+      ],
+      "answerable": true,
+      "passed": true,
+      "status": null,
+      "grade": null,
+      "error": null,
+      "answer": "",
+      "metrics": {
+        "errored": 0.0,
+        "hit@1": 0.0,
+        "hit@k": 1.0,
+        "precision@k": 0.2,
+        "recall@k": 1.0,
+        "mrr": 0.3333333333333333,
+        "candidate_recall": 1.0
+      },
+      "judge": null,
+      "reranked": [
+        {
+          "chunk_id": "ade245ac-f8cf-4084-a6ac-b5b23da84ae0",
+          "book": "Introduction to Data Science",
+          "chapter": "11 Parallel Computing",
+          "section": "11.4 Distributed Computing",
+          "page_start": 217,
+          "page_end": 218
+        },
+        {
+          "chunk_id": "366305a1-1941-4826-9b48-31fa24b7a474",
+          "book": "Introduction to Data Science",
+          "chapter": "11 Parallel Computing",
+          "section": "11.3.1 Direct View of Engines",
+          "page_start": 214,
+          "page_end": 215
+        },
+        {
+          "chunk_id": "26c67047-9447-4404-a0f9-0f338bdadb6d",
+          "book": "Introduction to Data Science",
+          "chapter": "11 Parallel Computing",
+          "section": "11.2.1 Getting Started",
+          "page_start": 211,
+          "page_end": 212
+        },
+        {
+          "chunk_id": "d7864e11-c8bb-41aa-adf2-6450754ec4cb",
+          "book": "Introduction to Data Science",
+          "chapter": "11 Parallel Computing",
+          "section": "11.5.2 Results",
+          "page_start": 222,
+          "page_end": 223
+        },
+        {
+          "chunk_id": "c2d48a7a-442a-46a8-bb82-be8e6a0dba27",
+          "book": "Introduction to Data Science",
+          "chapter": "11 Parallel Computing",
+          "section": "11.3.1 Direct View of Engines",
+          "page_start": 213,
+          "page_end": 214
+        }
+      ],
+      "cited": [],
+      "candidates": [
+        {
+          "chunk_id": "ade245ac-f8cf-4084-a6ac-b5b23da84ae0",
+          "book": "Introduction to Data Science",
+          "chapter": "11 Parallel Computing",
+          "section": "11.4 Distributed Computing",
+          "page_start": 217,
+          "page_end": 218
+        },
+        {
+          "chunk_id": "c2d48a7a-442a-46a8-bb82-be8e6a0dba27",
+          "book": "Introduction to Data Science",
+          "chapter": "11 Parallel Computing",
+          "section": "11.3.1 Direct View of Engines",
+          "page_start": 213,
+          "page_end": 214
+        },
+        {
+          "chunk_id": "366305a1-1941-4826-9b48-31fa24b7a474",
+          "book": "Introduction to Data Science",
+          "chapter": "11 Parallel Computing",
+          "section": "11.3.1 Direct View of Engines",
+          "page_start": 214,
+          "page_end": 215
+        },
+        {
+          "chunk_id": "f43e7e0e-0d32-4d7f-a2f6-362ed45ba0d4",
+          "book": "Introduction to Data Science",
+          "chapter": "11 Parallel Computing",
+          "section": "11.2 Architecture",
+          "page_start": 210,
+          "page_end": 211
+        },
+        {
+          "chunk_id": "1507c089-30f2-42b6-9b9f-93c8b75a1cb0",
+          "book": "Introduction to Data Science",
+          "chapter": "11 Parallel Computing",
+          "section": "11.5.1 A Direct View Non-Blocking Proposal",
+          "page_start": 219,
+          "page_end": 220
+        },
+        {
+          "chunk_id": "f0cd4f0d-63f5-4db3-a75f-5df12e3a09ab",
+          "book": "Introduction to Data Science",
+          "chapter": "11 Parallel Computing",
+          "section": "11.4 Distributed Computing",
+          "page_start": 218,
+          "page_end": 218
+        },
+        {
+          "chunk_id": "26c67047-9447-4404-a0f9-0f338bdadb6d",
+          "book": "Introduction to Data Science",
+          "chapter": "11 Parallel Computing",
+          "section": "11.2.1 Getting Started",
+          "page_start": 211,
+          "page_end": 212
+        },
+        {
+          "chunk_id": "1b949413-4a8d-484b-9b1e-b547e429cfe6",
+          "book": "Introduction to Data Science",
+          "chapter": "11 Parallel Computing",
+          "section": "11.5 A Real Application: New York Taxi Trips",
+          "page_start": 219,
+          "page_end": 219
+        },
+        {
+          "chunk_id": "a063f255-0f04-4c79-a270-5da3b714c361",
+          "book": "The Ultimate Django Guide",
+          "chapter": "2. Setting Up the Development Environment",
+          "section": "2. Setting Up the Development Environment",
+          "page_start": 26,
+          "page_end": 26
+        },
+        {
+          "chunk_id": "d7864e11-c8bb-41aa-adf2-6450754ec4cb",
+          "book": "Introduction to Data Science",
+          "chapter": "11 Parallel Computing",
+          "section": "11.5.2 Results",
+          "page_start": 222,
+          "page_end": 223
+        },
+        {
+          "chunk_id": "eab1c81a-8f83-4c6c-b012-b1afeaa40ae8",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.3.2 Practical Case: Facebook Dataset",
+          "page_start": 157,
+          "page_end": 158
+        },
+        {
+          "chunk_id": "a7da609f-0cd0-47ca-a7de-9fb194e82562",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.5 Ego-Networks",
+          "page_start": 169,
+          "page_end": 170
+        },
+        {
+          "chunk_id": "d78d3733-9e37-49a5-a0fd-3203eb2f357b",
+          "book": "The Ultimate Django Guide",
+          "chapter": "11. Working with Databases",
+          "section": "11. Working with Databases",
+          "page_start": 185,
+          "page_end": 185
+        },
+        {
+          "chunk_id": "942bba1d-7f84-4268-9f3d-ae2a39f08dbd",
+          "book": "Introduction to Data Science",
+          "chapter": "Preface",
+          "section": "Preface",
+          "page_start": 6,
+          "page_end": 6
+        },
+        {
+          "chunk_id": "65bd9c4b-fa43-4944-9d2f-c281caea8553",
+          "book": "Introduction to Data Science",
+          "chapter": "11 Parallel Computing",
+          "section": "11.3 Multicore Programming",
+          "page_start": 213,
+          "page_end": 213
+        },
+        {
+          "chunk_id": "508d2b84-6819-4841-ae43-005b19ba52c1",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2.2 What Constitutes a Good Clustering? Defining Metrics to Measure Clustering Quality",
+          "page_start": 132,
+          "page_end": 132
+        },
+        {
+          "chunk_id": "68f40cde-e1d6-4d6c-9761-9fd33e9c461d",
+          "book": "Introduction to Data Science",
+          "chapter": "8 Network Analysis",
+          "section": "8.4 Centrality",
+          "page_start": 163,
+          "page_end": 164
+        },
+        {
+          "chunk_id": "b77c289e-1e2a-4a48-b1cd-540df298cb0b",
+          "book": "Introduction to Data Science",
+          "chapter": "10 Statistical Natural Language Processing for Sentiment Analysis",
+          "section": "10.3 Text Representation",
+          "page_start": 199,
+          "page_end": 200
+        },
+        {
+          "chunk_id": "506cd59c-3dfe-4bc8-96e9-2e87aca8b38d",
+          "book": "The Ultimate Django Guide",
+          "chapter": "9. Django Templates",
+          "section": "Template Inheritance",
+          "page_start": 136,
+          "page_end": 137
+        },
+        {
+          "chunk_id": "7d66f7ad-9336-4099-8b4d-d44fda0832ac",
+          "book": "Introduction to Data Science",
+          "chapter": "11 Parallel Computing",
+          "section": "11.5.1 A Direct View Non-Blocking Proposal",
+          "page_start": 220,
+          "page_end": 221
+        }
+      ],
+      "latency_ms": {
+        "retrieve": 3539.5,
+        "rerank": 19704.0
+      }
+    },
+    {
+      "id": "kw-13",
+      "question": "Eq. (6.1)",
+      "tags": [
+        "seed",
+        "keyword",
+        "data-science",
+        "label"
+      ],
+      "answerable": true,
+      "passed": true,
+      "status": null,
+      "grade": null,
+      "error": null,
+      "answer": "",
+      "metrics": {
+        "errored": 0.0,
+        "hit@1": 0.0,
+        "hit@k": 1.0,
+        "precision@k": 0.4,
+        "recall@k": 1.0,
+        "mrr": 0.5,
+        "candidate_recall": 1.0
+      },
+      "judge": null,
+      "reranked": [
+        {
+          "chunk_id": "dead378b-46b4-4ba0-93bb-9c45145e2dcd",
+          "book": "Introduction to Data Science",
+          "chapter": "6 Regression Analysis",
+          "section": "6.2.2 Multiple Linear Regression and Polynomial Regression",
+          "page_start": 116,
+          "page_end": 117
+        },
+        {
+          "chunk_id": "056c11b6-2044-49ef-a997-6877d0366b9a",
+          "book": "Introduction to Data Science",
+          "chapter": "6 Regression Analysis",
+          "section": "6.2.1 Simple Linear Regression",
+          "page_start": 111,
+          "page_end": 112
+        },
+        {
+          "chunk_id": "5d28a6d1-0848-419f-8a1d-1f4451d884c0",
+          "book": "Introduction to Data Science",
+          "chapter": "6 Regression Analysis",
+          "section": "6.2 Linear Regression",
+          "page_start": 111,
+          "page_end": 111
+        },
+        {
+          "chunk_id": "5bccd0ba-9ff4-4316-af22-a242d2ed2039",
+          "book": "Introduction to Data Science",
+          "chapter": "9 Recommender Systems",
+          "section": "9.5.2 User-Based Collaborative Filtering",
+          "page_start": 189,
+          "page_end": 190
+        },
+        {
+          "chunk_id": "a59d89c7-feb8-4c01-a8f7-860dab85c8b4",
+          "book": "Introduction to Data Science",
+          "chapter": "6 Regression Analysis",
+          "section": "6.2.1 Simple Linear Regression",
+          "page_start": 114,
+          "page_end": 115
+        }
+      ],
+      "cited": [],
+      "candidates": [
+        {
+          "chunk_id": "056c11b6-2044-49ef-a997-6877d0366b9a",
+          "book": "Introduction to Data Science",
+          "chapter": "6 Regression Analysis",
+          "section": "6.2.1 Simple Linear Regression",
+          "page_start": 111,
+          "page_end": 112
+        },
+        {
+          "chunk_id": "dead378b-46b4-4ba0-93bb-9c45145e2dcd",
+          "book": "Introduction to Data Science",
+          "chapter": "6 Regression Analysis",
+          "section": "6.2.2 Multiple Linear Regression and Polynomial Regression",
+          "page_start": 116,
+          "page_end": 117
+        },
+        {
+          "chunk_id": "0b1cedaf-fc3d-4fc2-8642-afc127ff9b2d",
+          "book": "Introduction to Data Science",
+          "chapter": "2 Toolboxes for Data Scientists",
+          "section": "2.6.5 Manipulating Data",
+          "page_start": 34,
+          "page_end": 35
+        },
+        {
+          "chunk_id": "8be884a5-cdd0-450d-a9d7-af71d68a2b4a",
+          "book": "Introduction to Data Science",
+          "chapter": "2 Toolboxes for Data Scientists",
+          "section": "2.6.3 Filtering Data",
+          "page_start": 31,
+          "page_end": 31
+        },
+        {
+          "chunk_id": "17df7b1b-bb76-411d-9593-d5135935e306",
+          "book": "Introduction to Data Science",
+          "chapter": "2 Toolboxes for Data Scientists",
+          "section": "2.6.6 Sorting",
+          "page_start": 36,
+          "page_end": 37
+        },
+        {
+          "chunk_id": "6c1d015a-592e-4781-968b-03d656b65788",
+          "book": "Introduction to Data Science",
+          "chapter": "6 Regression Analysis",
+          "section": "6.2.1 Simple Linear Regression",
+          "page_start": 113,
+          "page_end": 114
+        },
+        {
+          "chunk_id": "80121627-aaec-4d7d-8ce0-796cda996024",
+          "book": "Introduction to Data Science",
+          "chapter": "2 Toolboxes for Data Scientists",
+          "section": "2.6.1 Reading",
+          "page_start": 28,
+          "page_end": 30
+        },
+        {
+          "chunk_id": "c9d47df1-4495-452d-8470-7c48b7722fcf",
+          "book": "Introduction to Data Science",
+          "chapter": "2 Toolboxes for Data Scientists",
+          "section": "2.6.9 Ranking Data",
+          "page_start": 40,
+          "page_end": 40
+        },
+        {
+          "chunk_id": "e8c3ccd9-b79b-42bd-9e59-ef96e7a360b5",
+          "book": "Introduction to Data Science",
+          "chapter": "6 Regression Analysis",
+          "section": "6.2.1 Simple Linear Regression",
+          "page_start": 115,
+          "page_end": 116
+        },
+        {
+          "chunk_id": "99f76683-2524-48dc-913d-4b598082796a",
+          "book": "Introduction to Data Science",
+          "chapter": "2 Toolboxes for Data Scientists",
+          "section": "2.6.5 Manipulating Data",
+          "page_start": 35,
+          "page_end": 36
+        },
+        {
+          "chunk_id": "5d28a6d1-0848-419f-8a1d-1f4451d884c0",
+          "book": "Introduction to Data Science",
+          "chapter": "6 Regression Analysis",
+          "section": "6.2 Linear Regression",
+          "page_start": 111,
+          "page_end": 111
+        },
+        {
+          "chunk_id": "ff5c2fff-98a0-4f9e-8b3d-babc8d593dd5",
+          "book": "Introduction to Data Science",
+          "chapter": "3 Descriptive Statistics",
+          "section": "3.4.1 Sample and Estimated Mean, Variance and Standard Scores",
+          "page_start": 61,
+          "page_end": 61
+        },
+        {
+          "chunk_id": "05d45d42-abee-44c3-b559-6fa267a734a8",
+          "book": "Introduction to Data Science",
+          "chapter": "6 Regression Analysis",
+          "section": "6.1 Introduction",
+          "page_start": 110,
+          "page_end": 111
+        },
+        {
+          "chunk_id": "a59d89c7-feb8-4c01-a8f7-860dab85c8b4",
+          "book": "Introduction to Data Science",
+          "chapter": "6 Regression Analysis",
+          "section": "6.2.1 Simple Linear Regression",
+          "page_start": 114,
+          "page_end": 115
+        },
+        {
+          "chunk_id": "79110ac0-e40b-409b-8926-cdc23a7effb8",
+          "book": "Introduction to Data Science",
+          "chapter": "3 Descriptive Statistics",
+          "section": "3.3.1 Summarizing the Data",
+          "page_start": 50,
+          "page_end": 50
+        },
+        {
+          "chunk_id": "5bccd0ba-9ff4-4316-af22-a242d2ed2039",
+          "book": "Introduction to Data Science",
+          "chapter": "9 Recommender Systems",
+          "section": "9.5.2 User-Based Collaborative Filtering",
+          "page_start": 189,
+          "page_end": 190
+        },
+        {
+          "chunk_id": "edcbef05-4862-4903-abb1-b9d075467bd0",
+          "book": "Introduction to Data Science",
+          "chapter": "9 Recommender Systems",
+          "section": "9.5.2 User-Based Collaborative Filtering",
+          "page_start": 190,
+          "page_end": 191
+        },
+        {
+          "chunk_id": "dc68bb05-2efb-4ad5-b562-6d13e89211ca",
+          "book": "Introduction to Data Science",
+          "chapter": "2 Toolboxes for Data Scientists",
+          "section": "2.6.5 Manipulating Data",
+          "page_start": 33,
+          "page_end": 34
+        },
+        {
+          "chunk_id": "6ca5a591-dfb1-492a-8f66-fff1914b72d4",
+          "book": "The Ultimate Django Guide",
+          "chapter": "11. Working with Databases",
+          "section": "Advanced Query Techniques",
+          "page_start": 213,
+          "page_end": 214
+        },
+        {
+          "chunk_id": "0ffe87a9-21e2-4329-ab3a-9f13eca78e5e",
+          "book": "Introduction to Data Science",
+          "chapter": "3 Descriptive Statistics",
+          "section": "3.3.1 Summarizing the Data",
+          "page_start": 46,
+          "page_end": 47
+        }
+      ],
+      "latency_ms": {
+        "retrieve": 3427.1,
+        "rerank": 22261.9
+      }
+    },
+    {
+      "id": "kw-14",
+      "question": "bootstrap",
+      "tags": [
+        "seed",
+        "keyword",
+        "data-science",
+        "filtered"
+      ],
+      "answerable": true,
+      "passed": true,
+      "status": null,
+      "grade": null,
+      "error": null,
+      "answer": "",
+      "metrics": {
+        "errored": 0.0,
+        "hit@1": 1.0,
+        "hit@k": 1.0,
+        "precision@k": 0.6,
+        "recall@k": 1.0,
+        "mrr": 1.0,
+        "candidate_recall": 1.0
+      },
+      "judge": null,
+      "reranked": [
+        {
+          "chunk_id": "107d4665-110f-4bb7-990f-61131ee67381",
+          "book": "Introduction to Data Science",
+          "chapter": "4 Statistical Inference",
+          "section": "4.6 Conclusions",
+          "page_start": 78,
+          "page_end": 79
+        },
+        {
+          "chunk_id": "ba49693e-e97a-4601-9c02-c6e77e0f91a8",
+          "book": "Introduction to Data Science",
+          "chapter": "4 Statistical Inference",
+          "section": "4.3.1 Point Estimates",
+          "page_start": 69,
+          "page_end": 70
+        },
+        {
+          "chunk_id": "9cbc4690-b1b2-490a-9195-99f2e5eec8e2",
+          "book": "Introduction to Data Science",
+          "chapter": "4 Statistical Inference",
+          "section": "4.3.2 Confidence Intervals",
+          "page_start": 71,
+          "page_end": 72
+        },
+        {
+          "chunk_id": "26d3200f-7d49-47f5-9f3f-c58fd432372b",
+          "book": "Introduction to Data Science",
+          "chapter": "4 Statistical Inference",
+          "section": "4.2 Statistical Inference: The Frequentist Approach",
+          "page_start": 66,
+          "page_end": 66
+        },
+        {
+          "chunk_id": "94a2dab1-9905-47f1-af5c-f59130c845f7",
+          "book": "Introduction to Data Science",
+          "chapter": "5 Supervised Learning",
+          "section": "5.10 Conclusion",
+          "page_start": 108,
+          "page_end": 109
+        }
+      ],
+      "cited": [],
+      "candidates": [
+        {
+          "chunk_id": "ba49693e-e97a-4601-9c02-c6e77e0f91a8",
+          "book": "Introduction to Data Science",
+          "chapter": "4 Statistical Inference",
+          "section": "4.3.1 Point Estimates",
+          "page_start": 69,
+          "page_end": 70
+        },
+        {
+          "chunk_id": "107d4665-110f-4bb7-990f-61131ee67381",
+          "book": "Introduction to Data Science",
+          "chapter": "4 Statistical Inference",
+          "section": "4.6 Conclusions",
+          "page_start": 78,
+          "page_end": 79
+        },
+        {
+          "chunk_id": "9cbc4690-b1b2-490a-9195-99f2e5eec8e2",
+          "book": "Introduction to Data Science",
+          "chapter": "4 Statistical Inference",
+          "section": "4.3.2 Confidence Intervals",
+          "page_start": 71,
+          "page_end": 72
+        },
+        {
+          "chunk_id": "26d3200f-7d49-47f5-9f3f-c58fd432372b",
+          "book": "Introduction to Data Science",
+          "chapter": "4 Statistical Inference",
+          "section": "4.2 Statistical Inference: The Frequentist Approach",
+          "page_start": 66,
+          "page_end": 66
+        },
+        {
+          "chunk_id": "d7609ddd-b48a-4d22-8a38-4971dbf18f7e",
+          "book": "Introduction to Data Science",
+          "chapter": "10 Statistical Natural Language Processing for Sentiment Analysis",
+          "section": "10.3.1 Bi-Grams and n-Grams",
+          "page_start": 201,
+          "page_end": 202
+        },
+        {
+          "chunk_id": "ef13d127-dc4e-4220-9ad0-f44c72e2b253",
+          "book": "Introduction to Data Science",
+          "chapter": "2 Toolboxes for Data Scientists",
+          "section": "2.6 Get Started with Python for Data Scientists",
+          "page_start": 24,
+          "page_end": 25
+        },
+        {
+          "chunk_id": "94a2dab1-9905-47f1-af5c-f59130c845f7",
+          "book": "Introduction to Data Science",
+          "chapter": "5 Supervised Learning",
+          "section": "5.10 Conclusion",
+          "page_start": 108,
+          "page_end": 109
+        },
+        {
+          "chunk_id": "2657258a-d045-4cf8-b8a4-c9c210e4d08a",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.2.3 Taxonomies of Clustering Techniques",
+          "page_start": 135,
+          "page_end": 136
+        },
+        {
+          "chunk_id": "8407db5b-2a06-4c32-a93e-7dda508d24b2",
+          "book": "Introduction to Data Science",
+          "chapter": "5 Supervised Learning",
+          "section": "5.3 First Steps",
+          "page_start": 82,
+          "page_end": 83
+        },
+        {
+          "chunk_id": "80121627-aaec-4d7d-8ce0-796cda996024",
+          "book": "Introduction to Data Science",
+          "chapter": "2 Toolboxes for Data Scientists",
+          "section": "2.6.1 Reading",
+          "page_start": 28,
+          "page_end": 30
+        },
+        {
+          "chunk_id": "c201481b-dbba-4c1f-bdd2-47b4b0321228",
+          "book": "Introduction to Data Science",
+          "chapter": "9 Recommender Systems",
+          "section": "9.5.2 User-Based Collaborative Filtering",
+          "page_start": 188,
+          "page_end": 188
+        },
+        {
+          "chunk_id": "a5fa1b4a-932b-4391-90f2-a15f4ac37038",
+          "book": "Introduction to Data Science",
+          "chapter": "5 Supervised Learning",
+          "section": "5.5 Learning Curves",
+          "page_start": 94,
+          "page_end": 95
+        },
+        {
+          "chunk_id": "9c1377d9-d2ed-4ed0-abf2-35ab84fe3427",
+          "book": "Introduction to Data Science",
+          "chapter": "5 Supervised Learning",
+          "section": "5.8 Ending the Learning Process",
+          "page_start": 104,
+          "page_end": 105
+        },
+        {
+          "chunk_id": "dc68bb05-2efb-4ad5-b562-6d13e89211ca",
+          "book": "Introduction to Data Science",
+          "chapter": "2 Toolboxes for Data Scientists",
+          "section": "2.6.5 Manipulating Data",
+          "page_start": 33,
+          "page_end": 34
+        },
+        {
+          "chunk_id": "e3c08010-80f7-4bc8-aa1f-31a0fe1b850f",
+          "book": "Introduction to Data Science",
+          "chapter": "2 Toolboxes for Data Scientists",
+          "section": "2.6.5 Manipulating Data",
+          "page_start": 36,
+          "page_end": 36
+        },
+        {
+          "chunk_id": "12cfa241-0c37-41f5-85b3-5730d9513518",
+          "book": "Introduction to Data Science",
+          "chapter": "5 Supervised Learning",
+          "section": "5.3 First Steps",
+          "page_start": 82,
+          "page_end": 82
+        },
+        {
+          "chunk_id": "8409ad6b-5911-4244-8b94-5d58c6d6c1e9",
+          "book": "Introduction to Data Science",
+          "chapter": "9 Recommender Systems",
+          "section": "9.5.2 User-Based Collaborative Filtering",
+          "page_start": 187,
+          "page_end": 188
+        },
+        {
+          "chunk_id": "17df7b1b-bb76-411d-9593-d5135935e306",
+          "book": "Introduction to Data Science",
+          "chapter": "2 Toolboxes for Data Scientists",
+          "section": "2.6.6 Sorting",
+          "page_start": 36,
+          "page_end": 37
+        },
+        {
+          "chunk_id": "12190b4c-3b25-49a5-9fe7-1db6eda021a8",
+          "book": "Introduction to Data Science",
+          "chapter": "5 Supervised Learning",
+          "section": "5.7.1 Generalities Concerning Learning Models",
+          "page_start": 99,
+          "page_end": 100
+        },
+        {
+          "chunk_id": "0a62094b-c374-45f7-a451-6e29e37b97eb",
+          "book": "Introduction to Data Science",
+          "chapter": "7 Unsupervised Learning",
+          "section": "7.3 Case Study",
+          "page_start": 149,
+          "page_end": 150
+        }
+      ],
+      "latency_ms": {
+        "retrieve": 4941.1,
+        "rerank": 22761.5
+      }
+    },
+    {
+      "id": "kw-15",
+      "question": "bootstrap",
+      "tags": [
+        "seed",
+        "keyword",
+        "django",
+        "filtered"
+      ],
+      "answerable": true,
+      "passed": true,
+      "status": null,
+      "grade": null,
+      "error": null,
+      "answer": "",
+      "metrics": {
+        "errored": 0.0,
+        "hit@1": 0.0,
+        "hit@k": 1.0,
+        "precision@k": 0.8,
+        "recall@k": 1.0,
+        "mrr": 0.5,
+        "candidate_recall": 1.0
+      },
+      "judge": null,
+      "reranked": [
+        {
+          "chunk_id": "e36bfd51-4284-4ab4-bce1-8f2a12f6c657",
+          "book": "The Ultimate Django Guide",
+          "chapter": "Terms and Definitions",
+          "section": "Terms and Definitions",
+          "page_start": 6,
+          "page_end": 7
+        },
+        {
+          "chunk_id": "8da3741e-a808-4fde-b1da-cad0a40095fa",
+          "book": "The Ultimate Django Guide",
+          "chapter": "10. Django Forms",
+          "section": "Customizing Form Widgets and Layout",
+          "page_start": 170,
+          "page_end": 172
+        },
+        {
+          "chunk_id": "ba32ae76-1322-400e-addc-ad63b0064619",
+          "book": "The Ultimate Django Guide",
+          "chapter": "10. Django Forms",
+          "section": "Customizing Form Widgets and Layout",
+          "page_start": 168,
+          "page_end": 170
+        },
+        {
+          "chunk_id": "10f14841-98f4-4857-8c92-77ea2c439110",
+          "book": "The Ultimate Django Guide",
+          "chapter": "10. Django Forms",
+          "section": "Advanced Form Processing Techniques",
+          "page_start": 172,
+          "page_end": 174
+        },
+        {
+          "chunk_id": "8b23399a-3434-4163-b40d-e2b96fc0ebe7",
+          "book": "The Ultimate Django Guide",
+          "chapter": "10. Django Forms",
+          "section": "Advanced Form Processing Techniques",
+          "page_start": 178,
+          "page_end": 180
+        }
+      ],
+      "cited": [],
+      "candidates": [
+        {
+          "chunk_id": "8da3741e-a808-4fde-b1da-cad0a40095fa",
+          "book": "The Ultimate Django Guide",
+          "chapter": "10. Django Forms",
+          "section": "Customizing Form Widgets and Layout",
+          "page_start": 170,
+          "page_end": 172
+        },
+        {
+          "chunk_id": "8b23399a-3434-4163-b40d-e2b96fc0ebe7",
+          "book": "The Ultimate Django Guide",
+          "chapter": "10. Django Forms",
+          "section": "Advanced Form Processing Techniques",
+          "page_start": 178,
+          "page_end": 180
+        },
+        {
+          "chunk_id": "850e363f-36fe-4a9a-9456-513b3005f76f",
+          "book": "The Ultimate Django Guide",
+          "chapter": "10. Django Forms",
+          "section": "Advanced Form Processing Techniques",
+          "page_start": 177,
+          "page_end": 178
+        },
+        {
+          "chunk_id": "10f14841-98f4-4857-8c92-77ea2c439110",
+          "book": "The Ultimate Django Guide",
+          "chapter": "10. Django Forms",
+          "section": "Advanced Form Processing Techniques",
+          "page_start": 172,
+          "page_end": 174
+        },
+        {
+          "chunk_id": "ba32ae76-1322-400e-addc-ad63b0064619",
+          "book": "The Ultimate Django Guide",
+          "chapter": "10. Django Forms",
+          "section": "Customizing Form Widgets and Layout",
+          "page_start": 168,
+          "page_end": 170
+        },
+        {
+          "chunk_id": "946935d8-66d9-4024-b1b3-ee2b990d646d",
+          "book": "The Ultimate Django Guide",
+          "chapter": "9. Django Templates",
+          "section": "Template Inheritance",
+          "page_start": 137,
+          "page_end": 138
+        },
+        {
+          "chunk_id": "506cd59c-3dfe-4bc8-96e9-2e87aca8b38d",
+          "book": "The Ultimate Django Guide",
+          "chapter": "9. Django Templates",
+          "section": "Template Inheritance",
+          "page_start": 136,
+          "page_end": 137
+        },
+        {
+          "chunk_id": "e36bfd51-4284-4ab4-bce1-8f2a12f6c657",
+          "book": "The Ultimate Django Guide",
+          "chapter": "Terms and Definitions",
+          "section": "Terms and Definitions",
+          "page_start": 6,
+          "page_end": 7
+        },
+        {
+          "chunk_id": "44606eb2-4e4f-4945-8bc6-7d6e6e54ab96",
+          "book": "The Ultimate Django Guide",
+          "chapter": "Preface",
+          "section": "Preface",
+          "page_start": 11,
+          "page_end": 12
+        },
+        {
+          "chunk_id": "e1e2e023-ded8-443a-8bd8-848538907d0c",
+          "book": "The Ultimate Django Guide",
+          "chapter": "10. Django Forms",
+          "section": "Customizing Form Widgets and Layout",
+          "page_start": 172,
+          "page_end": 172
+        },
+        {
+          "chunk_id": "6ed9a607-46f5-4408-8f8a-4e6cb5167c76",
+          "book": "The Ultimate Django Guide",
+          "chapter": "8. Django Views",
+          "section": "Class-Based Views (CBVs)",
+          "page_start": 112,
+          "page_end": 114
+        },
+        {
+          "chunk_id": "b32d5a26-dcb1-4d94-946e-b3350a83cade",
+          "book": "The Ultimate Django Guide",
+          "chapter": "9. Django Templates",
+          "section": "Using Template Tags and Filters",
+          "page_start": 148,
+          "page_end": 150
+        },
+        {
+          "chunk_id": "e575b518-4da6-4f2d-9465-c7c32055bd3c",
+          "book": "The Ultimate Django Guide",
+          "chapter": "6. Django Models",
+          "section": "Introduction to Django Models",
+          "page_start": 69,
+          "page_end": 71
+        },
+        {
+          "chunk_id": "20fd8728-dd21-449a-a968-4c28fe51466d",
+          "book": "The Ultimate Django Guide",
+          "chapter": "11. Working with Databases",
+          "section": "Advanced Query Techniques",
+          "page_start": 210,
+          "page_end": 212
+        },
+        {
+          "chunk_id": "c42ea295-1d3b-4e60-94bc-02606ad172c0",
+          "book": "The Ultimate Django Guide",
+          "chapter": "11. Working with Databases",
+          "section": "Performing CRUD Operations",
+          "page_start": 193,
+          "page_end": 194
+        },
+        {
+          "chunk_id": "98b7667b-9b15-4ed9-b124-1fd6f9eb6dd3",
+          "book": "The Ultimate Django Guide",
+          "chapter": "9. Django Templates",
+          "section": "Using Template Tags and Filters",
+          "page_start": 150,
+          "page_end": 152
+        },
+        {
+          "chunk_id": "fae0dcf9-7ca4-4cea-b52b-234a248a3ffe",
+          "book": "The Ultimate Django Guide",
+          "chapter": "Terms and Definitions",
+          "section": "Terms and Definitions",
+          "page_start": 6,
+          "page_end": 6
+        },
+        {
+          "chunk_id": "0ff4e731-74a8-40ca-8edc-f3e9957b555c",
+          "book": "The Ultimate Django Guide",
+          "chapter": "11. Working with Databases",
+          "section": "Using Django’s Built-in Database Functions",
+          "page_start": 203,
+          "page_end": 205
+        },
+        {
+          "chunk_id": "b1dee263-002a-443e-9676-60325940c746",
+          "book": "The Ultimate Django Guide",
+          "chapter": "9. Django Templates",
+          "section": "Including and Extending Templates",
+          "page_start": 140,
+          "page_end": 142
+        },
+        {
+          "chunk_id": "be20b662-005f-42f1-ba12-9d8c9d285987",
+          "book": "The Ultimate Django Guide",
+          "chapter": "11. Working with Databases",
+          "section": "Using Django’s Built-in Database Functions",
+          "page_start": 202,
+          "page_end": 203
+        }
+      ],
+      "latency_ms": {
+        "retrieve": 4305.4,
+        "rerank": 30106.1
+      }
+    }
+  ]
+}

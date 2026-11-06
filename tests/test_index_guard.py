@@ -14,10 +14,14 @@ from qdrant_client import AsyncQdrantClient, QdrantClient
 
 from app.config import Settings
 from app.main import create_app
+from app.retrieval.sparse_encoder import SPARSE_ENCODER_VERSION
 from app.services.index_version import (
+    LEGACY_SPARSE_ENCODER,
     IndexMismatchError,
     check_index_embedder,
     embedder_stamp,
+    index_stamp,
+    sparse_stamp_problems,
     stamp_problems,
 )
 from conftest import FakeLLM, build_test_services, make_settings
@@ -56,17 +60,39 @@ class TestStampProblems:
         assert "bge-large" in problem and "EMBEDDING_MODEL" in problem
 
 
+class TestSparseStampProblems:
+    def test_matching_stamp_is_fine(self) -> None:
+        settings = _settings()
+        assert sparse_stamp_problems(index_stamp(settings), settings) == []
+
+    def test_unstamped_index_counts_as_the_first_tokenizer(self) -> None:
+        (problem,) = sparse_stamp_problems({}, _settings())
+        assert LEGACY_SPARSE_ENCODER in problem and SPARSE_ENCODER_VERSION in problem
+
+    def test_changed_bm25_setting_is_reported(self) -> None:
+        stamp = index_stamp(_settings())
+        (problem,) = sparse_stamp_problems(stamp, _settings(bm25_k1=2.0))
+        assert "BM25_K1" in problem
+
+
 class TestPipelineStamp:
-    def test_new_collection_records_its_embedder(self) -> None:
+    def test_new_collection_records_its_embedder_and_tokenizer(self) -> None:
         settings, client = _settings(), QdrantClient(location=":memory:")
         ensure_collection(client, settings)
-        assert _metadata(client, settings) == embedder_stamp(settings)
+        assert _metadata(client, settings) == index_stamp(settings)
 
-    def test_unstamped_collection_is_stamped_on_next_ingest(self) -> None:
+    def test_unstamped_collection_gets_its_embedder_then_needs_a_sparse_reindex(self) -> None:
         settings, client = _settings(), QdrantClient(location=":memory:")
         _bare_collection(client, settings)
-        ensure_collection(client, settings)
+        with pytest.raises(CollectionSchemaError, match="reindex_sparse"):
+            ensure_collection(client, settings)
         assert _metadata(client, settings)["embedding_model"] == settings.embedding_model
+
+    def test_ingest_with_another_tokenizer_is_refused(self) -> None:
+        settings, client = _settings(), QdrantClient(location=":memory:")
+        _bare_collection(client, settings, {**index_stamp(settings), "sparse_encoder": "bm25-v1"})
+        with pytest.raises(CollectionSchemaError, match="bm25-v1"):
+            ensure_collection(client, settings)
 
     def test_ingest_into_another_models_collection_is_refused(self) -> None:
         settings, client = _settings(), QdrantClient(location=":memory:")
@@ -93,6 +119,20 @@ class TestStartupCheck:
         settings = _settings()
         client = await _async_collection(settings, embedder_stamp(settings))
         await check_index_embedder(client, settings)
+
+    @pytest.mark.asyncio
+    async def test_outdated_keyword_vectors_only_warn(self, caplog) -> None:
+        settings = _settings()
+        client = await _async_collection(settings, embedder_stamp(settings))  # no tokenizer
+        await check_index_embedder(client, settings)
+        assert "reindex_sparse" in caplog.text and LEGACY_SPARSE_ENCODER in caplog.text
+
+    @pytest.mark.asyncio
+    async def test_matching_full_stamp_is_quiet(self, caplog) -> None:
+        settings = _settings()
+        client = await _async_collection(settings, index_stamp(settings))
+        await check_index_embedder(client, settings)
+        assert "reindex_sparse" not in caplog.text
 
     @pytest.mark.asyncio
     async def test_mismatched_stamp_raises(self) -> None:

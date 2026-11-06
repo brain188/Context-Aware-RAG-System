@@ -9,6 +9,8 @@ replaces the point count.
 The pipeline also stamps the collection with the embedder that wrote it
 (Qdrant collection metadata); the app refuses to start if its own query
 embedder differs, because mismatched vectors fail silently with bad results.
+It stamps the BM25 tokenizer and settings too; a mismatch there only degrades
+keyword search, so the app warns and `python -m pipeline.reindex_sparse` fixes it.
 """
 
 import hashlib
@@ -20,12 +22,18 @@ from qdrant_client.http.exceptions import ResponseHandlingException, UnexpectedR
 
 from app.config import Settings, get_logger
 from app.retrieval.errors import VectorStoreError
+from app.retrieval.sparse_encoder import SPARSE_ENCODER_VERSION
 
 logger = get_logger(__name__)
 
 # Settings that must be identical on the document side (ingest) and the query side.
 # The query instruction is deliberately absent: it is query-only and needs no re-ingest.
 EMBEDDER_STAMP_FIELDS = ("embedding_model", "embedding_dimension")
+# The document side of keyword search: the tokenizer version and the BM25 TF settings.
+SPARSE_STAMP_KEY = "sparse_encoder"
+SPARSE_STAMP_FIELDS = ("bm25_k1", "bm25_b", "bm25_avg_doc_length")
+# Collections written before the tokenizer was stamped used the first one.
+LEGACY_SPARSE_ENCODER = "bm25-v1"
 
 _FINGERPRINT_FIELDS = (
     "qdrant_collection",
@@ -40,6 +48,7 @@ _FINGERPRINT_FIELDS = (
     "bm25_k1",
     "bm25_b",
     "bm25_avg_doc_length",
+    "retrieval_mode",
     "reranker_model",
     "rerank_top_k",
     "llm_provider",
@@ -66,12 +75,44 @@ def stamp_problems(recorded: dict[str, Any], settings: Settings) -> list[str]:
     ]
 
 
+def sparse_stamp(settings: Settings) -> dict[str, Any]:
+    """The collection metadata recording how its BM25 sparse vectors were built."""
+    return {
+        SPARSE_STAMP_KEY: SPARSE_ENCODER_VERSION,
+        **{field: getattr(settings, field) for field in SPARSE_STAMP_FIELDS},
+    }
+
+
+def index_stamp(settings: Settings) -> dict[str, Any]:
+    """Everything the pipeline records on a collection it writes."""
+    return {**embedder_stamp(settings), **sparse_stamp(settings)}
+
+
+def sparse_stamp_problems(recorded: dict[str, Any], settings: Settings) -> list[str]:
+    """List every way the index's sparse vectors differ from what this code would write.
+
+    A missing tokenizer version means the first one; missing BM25 settings are not compared.
+    """
+    version = recorded.get(SPARSE_STAMP_KEY, LEGACY_SPARSE_ENCODER)
+    problems = []
+    if version != SPARSE_ENCODER_VERSION:
+        problems.append(f"index tokenizer {version!r} but the code's is {SPARSE_ENCODER_VERSION!r}")
+    problems += [
+        f"index {field}={recorded[field]!r} but {field.upper()}={getattr(settings, field)!r}"
+        for field in SPARSE_STAMP_FIELDS
+        if field in recorded and recorded[field] != getattr(settings, field)
+    ]
+    return problems
+
+
 async def check_index_embedder(client: AsyncQdrantClient, settings: Settings) -> None:
     """Refuse to serve queries against an index built with another embedder.
 
     A missing collection (nothing ingested yet), an unstamped one (ingested
     before stamping existed), or an unreachable Qdrant only log a WARNING:
     health checks report those, and the first ingest stamps the collection.
+    Keyword vectors built by another tokenizer or BM25 settings also only warn:
+    the keyword side still matches most terms, and dense search is unaffected.
 
     Raises:
         IndexMismatchError: if the collection's recorded embedder differs.
@@ -96,11 +137,20 @@ async def check_index_embedder(client: AsyncQdrantClient, settings: Settings) ->
             f"Collection '{name}' was built with a different embedder: {'; '.join(problems)}. "
             "Fix the embedding settings, or re-ingest every book with the new model."
         )
+    sparse_problems = sparse_stamp_problems(recorded, settings)
+    if sparse_problems:
+        logger.warning(
+            "Keyword search in '%s' is out of date: %s. Run `python -m pipeline.reindex_sparse` "
+            "(no re-embedding) before serving.",
+            name,
+            "; ".join(sparse_problems),
+        )
 
 
 def settings_fingerprint(settings: Settings) -> str:
-    """Short stable hash of the settings that change what an answer would be."""
+    """Short stable hash of the settings (and tokenizer) that change what an answer would be."""
     values = {field: getattr(settings, field) for field in _FINGERPRINT_FIELDS}
+    values[SPARSE_STAMP_KEY] = SPARSE_ENCODER_VERSION
     digest = hashlib.sha256(json.dumps(values, sort_keys=True, default=str).encode())
     return digest.hexdigest()[:12]
 

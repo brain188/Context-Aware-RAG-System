@@ -519,6 +519,14 @@ class TestIndexVersion:
         assert settings_fingerprint(make_settings(tmp_path, llm_generation_model="other")) != base
         assert settings_fingerprint(make_settings(tmp_path, log_level="DEBUG")) == base
 
+    def test_fingerprint_tracks_retrieval_mode_and_tokenizer(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        base = settings_fingerprint(make_settings(tmp_path))
+        assert settings_fingerprint(make_settings(tmp_path, retrieval_mode="dense")) != base
+        monkeypatch.setattr("app.services.index_version.SPARSE_ENCODER_VERSION", "bm25-v9")
+        assert settings_fingerprint(make_settings(tmp_path)) != base
+
 
 # ---------------------------------------------------------------------------
 # Ingest jobs

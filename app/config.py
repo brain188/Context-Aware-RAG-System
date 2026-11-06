@@ -120,6 +120,9 @@ class Settings(BaseSettings):
     conversation_max_turns: int = 6  # prior turns kept for follow-up rewriting
 
     # --- Retrieval ---
+    # Branches fused per query. dense / sparse run one branch alone, to measure what
+    # each contributes (`run_eval --retrieval-only --set retrieval_mode=sparse`).
+    retrieval_mode: Literal["hybrid", "dense", "sparse"] = "hybrid"
     retrieval_top_k: int = 20
     # Reciprocal-rank-fusion constant; 60 is the value from the original RRF paper.
     rrf_k: int = 60

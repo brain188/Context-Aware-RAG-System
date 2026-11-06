@@ -3,6 +3,7 @@
 Splits overlong sections into sub-chunks with overlap; accumulates small
 sections until they reach the configured minimum. Every emitted Chunk carries
 complete ChunkMetadata (book, chapter, section, page range, source_path, hash).
+The table of contents and the index are not chunked (see _NAVIGATION_CHAPTERS).
 
 Sizes are counted with the embedding model's own tokenizer, not a generic one:
 the model silently truncates past EMBEDDING_MAX_TOKENS, and generic counts
@@ -28,8 +29,19 @@ from pipeline.extractors.structure_parser import ParsedDocument, StructuredSecti
 logger = get_logger(__name__)
 
 
+# Front- and back-matter chapters that only list headings and page numbers. They cannot
+# answer a question, yet the table of contents holds every section number and title, so
+# it tops keyword results for queries like "Sect. 11.2.1" and crowds out the real section.
+_NAVIGATION_CHAPTERS = frozenset({"contents", "table of contents", "index"})
+
+
 class ChunkTooLongError(ValueError):
     """A chunk exceeds what the embedding model can read without truncation."""
+
+
+def is_navigation_chapter(chapter: str) -> bool:
+    """True for a table of contents or an index, which are not indexed."""
+    return chapter.strip().casefold() in _NAVIGATION_CHAPTERS
 
 
 @lru_cache(maxsize=4)
@@ -171,6 +183,7 @@ def chunk_document(doc: ParsedDocument) -> list[Chunk]:
     - Sections below min_tokens → accumulated into a buffer and merged with
       subsequent small sections of the same chapter until the buffer reaches
       min_tokens, then emitted with the pages of every merged section.
+    - Table-of-contents and index chapters → skipped.
 
     Args:
         doc: Preprocessed, structured document.
@@ -211,9 +224,13 @@ def chunk_document(doc: ParsedDocument) -> list[Chunk]:
         buf_text = ""
         buf_section = None
 
+    skipped_navigation = 0
     for section in doc.sections:
         text = section.text.strip()
         if not text:
+            continue
+        if is_navigation_chapter(section.chapter):
+            skipped_navigation += 1
             continue
         lead = len(section.text) - len(section.text.lstrip())  # text[i] is section.text[lead + i]
 
@@ -261,10 +278,11 @@ def chunk_document(doc: ParsedDocument) -> list[Chunk]:
 
     elapsed = time.perf_counter() - start_time
     logger.info(
-        "Chunked '%s': sections=%d chunks=%d elapsed_s=%.2f",
+        "Chunked '%s': sections=%d chunks=%d skipped_navigation_sections=%d elapsed_s=%.2f",
         doc.book_title,
         len(doc.sections),
         len(chunks),
+        skipped_navigation,
         elapsed,
     )
     return chunks

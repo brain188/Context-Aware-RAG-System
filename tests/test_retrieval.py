@@ -120,8 +120,10 @@ def _settings_4d(**overrides: Any) -> Settings:
     return _settings(embedding_dimension=4, retrieval_top_k=2, **overrides)
 
 
-async def _retrieve(query: str, query_vector: list[float], **kwargs: Any) -> list[ScoredChunk]:
-    settings = _settings_4d()
+async def _retrieve(
+    query: str, query_vector: list[float], mode: str = "hybrid", **kwargs: Any
+) -> list[ScoredChunk]:
+    settings = _settings_4d(retrieval_mode=mode)
     client = await _seeded_client(settings)
     retriever = HybridRetriever(
         client, FakeEmbedder(query_vector), BM25SparseEncoder(settings), settings
@@ -135,6 +137,13 @@ def _weight(vector: SparseVector, term: str) -> float:
 
 def _names(results: list[ScoredChunk]) -> list[str]:
     return [_NAMES[r.chunk.chunk_id] for r in results]
+
+
+class _NoEmbedder:
+    """Fails if the dense branch runs."""
+
+    def embed_query(self, text: str) -> list[float]:
+        raise AssertionError("the query should not be embedded")
 
 
 class FailingQdrant:
@@ -254,6 +263,16 @@ class TestBM25SparseEncoder:
         assert encoder.encode_query("?!").indices == []
         assert encoder.encode_document("...").indices == []
 
+    def test_dotted_numbers_are_also_whole_tokens(self) -> None:
+        assert tokenize("See Fig.8.11 and Eq.(6.1).") == [
+            *("see", "fig", "8", "11", "and", "eq", "6", "1"),
+            *("8.11", "6.1"),
+        ]
+
+    def test_spaced_and_glued_labels_share_the_label_token(self) -> None:
+        # PDFs drop spaces: the same label appears as "Table 9.1" and "Table9.1".
+        assert "9.1" in set(tokenize("Table 9.1")) & set(tokenize("see Table9.1."))
+
 
 # ---------------------------------------------------------------------------
 # hybrid_retriever.py (real Qdrant local mode)
@@ -304,6 +323,46 @@ class TestHybridRetriever:
     async def test_limit_caps_fused_results(self) -> None:
         results = await _retrieve("the", [1.0, 1.0, 1.0, 1.0], limit=1)
         assert len(results) == 1
+
+    @pytest.mark.asyncio
+    async def test_dense_mode_skips_the_keyword_branch(self) -> None:
+        # The same query and vector as test_keyword_only_hit_is_found, without BM25.
+        results = await _retrieve("KL divergence", [0.0, 0.5, 1.0, 0.0], mode="dense", limit=3)
+        assert "kl" not in _names(results)
+
+    @pytest.mark.asyncio
+    async def test_sparse_mode_does_not_embed_the_query(self) -> None:
+        settings = _settings_4d(retrieval_mode="sparse")
+        retriever = HybridRetriever(
+            await _seeded_client(settings), _NoEmbedder(), BM25SparseEncoder(settings), settings
+        )
+        results = await retriever.retrieve("KL divergence", request_id="r1")
+        assert _names(results) == ["kl"]
+
+    @pytest.mark.asyncio
+    async def test_sparse_mode_with_no_keyword_tokens_returns_nothing(self) -> None:
+        assert await _retrieve("?!", [0.0, 0.0, 1.0, 0.0], mode="sparse") == []
+
+    @pytest.mark.asyncio
+    async def test_figure_label_beats_figures_sharing_its_numbers(self) -> None:
+        settings = _settings_4d(retrieval_mode="sparse")
+        client = AsyncQdrantClient(location=":memory:")
+        dense, sparse = collection_schema(settings)
+        await client.create_collection(
+            settings.qdrant_collection, vectors_config=dense, sparse_vectors_config=sparse
+        )
+        texts = {
+            "kl": "Fig.8.11 shows an ego network of one node.",  # the figure asked for
+            "svm": "Fig. 8.5 and Fig.11.3 plot 8 and 11 engines; see 8 and 11 again.",
+        }
+        chunks = [_chunk(name) for name in texts]
+        for chunk in chunks:
+            chunk.text = texts[_NAMES[chunk.chunk_id]]
+        points = build_points(chunks, BM25SparseEncoder(settings), settings)
+        await client.upsert(settings.qdrant_collection, points=points)
+        retriever = HybridRetriever(client, _NoEmbedder(), BM25SparseEncoder(settings), settings)
+        results = await retriever.retrieve("Fig. 8.11", request_id="r1")
+        assert _names(results)[0] == "kl"
 
     @pytest.mark.asyncio
     async def test_blank_query_is_rejected(self) -> None:

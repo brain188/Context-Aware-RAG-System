@@ -3,6 +3,7 @@
 One Query API call runs two filtered prefetches — dense (bge embedding) and
 sparse (BM25, IDF applied by Qdrant) — and fuses them server-side with
 reciprocal-rank fusion. Returns ScoredChunks; no generation or reranking here.
+RETRIEVAL_MODE=dense or sparse keeps one branch, to measure each one alone.
 Requires Qdrant >= 1.16 (parameterized RRF).
 """
 
@@ -76,6 +77,7 @@ class HybridRetriever:
         self._sparse_name = settings.qdrant_sparse_vector_name
         self._candidate_k = settings.retrieval_top_k
         self._rrf_k = settings.rrf_k
+        self._mode = settings.retrieval_mode
 
     async def retrieve(
         self,
@@ -101,17 +103,24 @@ class HybridRetriever:
         limit = limit or self._candidate_k
         start = time.perf_counter()
 
-        dense = query_vector
-        if dense is None:
-            loop = asyncio.get_running_loop()
-            dense = await loop.run_in_executor(None, self._embedder.embed_query, query)
-        sparse = self._sparse.encode_query(query)
         qdrant_filter = to_qdrant_filter(filters)
-
-        prefetch = [self._prefetch(dense, self._dense_name, qdrant_filter)]
+        prefetch = []
+        if self._mode != "sparse":
+            dense = query_vector
+            if dense is None:
+                loop = asyncio.get_running_loop()
+                dense = await loop.run_in_executor(None, self._embedder.embed_query, query)
+            prefetch.append(self._prefetch(dense, self._dense_name, qdrant_filter))
+        sparse = self._sparse.encode_query(query)
         # A query with no word tokens (e.g. only symbols) has nothing to match lexically.
-        if sparse.indices:
+        if self._mode != "dense" and sparse.indices:
             prefetch.append(self._prefetch(sparse, self._sparse_name, qdrant_filter))
+        if not prefetch:
+            logger.info(
+                "Hybrid retrieval: no keyword tokens and retrieval_mode=sparse; nothing to search",
+                extra={"request_id": request_id},
+            )
+            return []
 
         try:
             response = await self._client.query_points(

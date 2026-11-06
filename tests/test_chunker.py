@@ -23,6 +23,7 @@ from pipeline.chunker import (
     _sha256,
     _split_by_tokens,
     chunk_document,
+    is_navigation_chapter,
 )
 from pipeline.extractors.pdf_extractor import extract_pdf
 from pipeline.extractors.structure_parser import (
@@ -181,6 +182,34 @@ class TestChunkDocumentHappyPath:
 # ---------------------------------------------------------------------------
 # chunk_document: size bounds
 # ---------------------------------------------------------------------------
+
+
+class TestNavigationChapters:
+    def test_contents_and_index_are_not_chunked(self) -> None:
+        text = " ".join(["word"] * 80)
+        doc = _make_doc(
+            [
+                ("Contents", "Contents", "1.1 Intro . . . . 3 " * 20, 1, 2),
+                ("Chapter 1", "1.1 Intro", text, 3, 5),
+                ("Index", "Index", "Bootstrap, 69, 71 " * 20, 9, 9),
+            ]
+        )
+        with _patch_settings(chunk_min_tokens=50, chunk_max_tokens=200):
+            chunks = chunk_document(doc)
+        assert [c.metadata.chapter for c in chunks] == ["Chapter 1"]
+
+    @pytest.mark.parametrize(
+        ("chapter", "skipped"),
+        [
+            ("Contents", True),
+            (" TABLE OF CONTENTS ", True),
+            ("Index", True),
+            ("11. Working with Databases", False),
+            ("Indexes and Constraints", False),
+        ],
+    )
+    def test_navigation_chapter_names(self, chapter: str, skipped: bool) -> None:
+        assert is_navigation_chapter(chapter) is skipped
 
 
 class TestChunkSizeBounds:

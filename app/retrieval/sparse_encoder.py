@@ -6,7 +6,8 @@ Modifier.IDF so Qdrant applies the IDF half at query time over the live corpus.
 Queries therefore only need weight 1.0 per distinct term.
 
 Shared by pipeline (documents) and app (queries): both sides must tokenize and
-hash identically, so changing anything here requires re-ingesting.
+hash identically. Changing anything here means bumping SPARSE_ENCODER_VERSION
+and running `python -m pipeline.reindex_sparse` (no re-embedding needed).
 """
 
 import re
@@ -17,12 +18,20 @@ from qdrant_client.models import SparseVector
 
 from app.config import Settings
 
+# Recorded on the collection by the pipeline; the app warns when it differs from the index's.
+# v1: lowercase \w+ words. v2: + dotted numbers as whole tokens.
+SPARSE_ENCODER_VERSION = "bm25-v2"
+
 _TOKEN_RE = re.compile(r"\w+")
+# Figure, table, equation and section labels ("Fig.8.11", "Eq.(6.1)", "Sect.11.2.1").
+# As words they split into "8" and "11", which every Fig. 8.x and x.11 shares.
+_LABEL_RE = re.compile(r"\d+(?:\.\d+)+")
 
 
 def tokenize(text: str) -> list[str]:
-    """Lowercase *text* and split it into word tokens."""
-    return _TOKEN_RE.findall(text.lower())
+    """Lowercase *text* into word tokens, plus each dotted number as one extra token."""
+    lowered = text.lower()
+    return _TOKEN_RE.findall(lowered) + _LABEL_RE.findall(lowered)
 
 
 def token_index(token: str) -> int:

@@ -9,7 +9,12 @@ contract: vector names come from Settings and must match on both sides.
 from app.config import Settings, get_logger
 from app.models import Chunk
 from app.retrieval.sparse_encoder import BM25SparseEncoder
-from app.services.index_version import embedder_stamp, stamp_problems
+from app.services.index_version import (
+    embedder_stamp,
+    index_stamp,
+    sparse_stamp_problems,
+    stamp_problems,
+)
 from qdrant_client import QdrantClient
 from qdrant_client.models import (
     CollectionInfo,
@@ -91,14 +96,16 @@ def _schema_problems(info: CollectionInfo, settings: Settings) -> list[str]:
 def ensure_collection(client: QdrantClient, settings: Settings) -> None:
     """Create the collection if missing; otherwise verify its schema matches.
 
-    New collections are stamped with the embedder that writes them, which the
-    app checks at startup. Either way, make sure the payload indexes exist
-    (adding an index to an existing collection is safe and needs no re-ingest).
+    New collections are stamped with the embedder and BM25 tokenizer that write
+    them, which the app checks at startup. Either way, make sure the payload
+    indexes exist (adding an index to an existing collection is safe and needs
+    no re-ingest).
 
     Raises:
         CollectionSchemaError: if the existing collection has a different schema
-            (e.g. created before sparse vectors were added) or was written by a
-            different embedding model.
+            (e.g. created before sparse vectors were added), was written by a
+            different embedding model, or holds keyword vectors from another
+            tokenizer or BM25 settings (mixing them in one index skews scores).
     """
     name = settings.qdrant_collection
     if not client.collection_exists(name):
@@ -107,7 +114,7 @@ def ensure_collection(client: QdrantClient, settings: Settings) -> None:
             collection_name=name,
             vectors_config=dense,
             sparse_vectors_config=sparse,
-            metadata=embedder_stamp(settings),
+            metadata=index_stamp(settings),
         )
         logger.info("Created Qdrant collection '%s' (dense + bm25 sparse).", name)
     else:
@@ -128,6 +135,13 @@ def ensure_collection(client: QdrantClient, settings: Settings) -> None:
                 "were embedded with another model, re-ingest every book.",
                 name,
                 embedder_stamp(settings),
+            )
+        sparse_problems = sparse_stamp_problems(info.config.metadata or {}, settings)
+        if sparse_problems:
+            raise CollectionSchemaError(
+                f"Collection '{name}' has keyword vectors from another encoder: "
+                f"{'; '.join(sparse_problems)}. Run `python -m pipeline.reindex_sparse` "
+                "(no re-embedding), then ingest."
             )
     _ensure_payload_indexes(client, name)
 

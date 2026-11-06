@@ -45,10 +45,12 @@ sides tokenize the same way by construction.
 
 - No index rebuild on restart and no keyword index in API memory. Per-book re-ingest
   works, and filters apply to both retrieval branches.
-- Tokenization is a contract: changing `tokenize`, the hashing or the BM25 settings
-  (`BM25_K1`, `BM25_B`, `BM25_AVG_DOC_LENGTH`) requires re-ingesting every book. These
-  settings are part of the index fingerprint, so the semantic cache is invalidated
-  automatically.
+- Tokenization is a contract. The collection records `SPARSE_ENCODER_VERSION` and the
+  BM25 settings (`BM25_K1`, `BM25_B`, `BM25_AVG_DOC_LENGTH`). On a mismatch the API warns
+  (dense search is unaffected) and ingest refuses to mix encoders in one index.
+  `python -m pipeline.reindex_sparse` re-encodes every chunk from its stored text with no
+  re-embedding. The version and settings are part of the index fingerprint, so the
+  semantic cache is invalidated automatically.
 - No stemming or stopword removal, so "divergences" does not match "divergence" on the
   keyword side. The dense side usually covers it. If the eval shows keyword misses,
   switching to fastembed BM25 is a contained change (encoder + re-ingest), measured
@@ -57,3 +59,20 @@ sides tokenize the same way by construction.
   approximation only shifts length normalization slightly; chunk sizes are bounded
   by the chunker anyway.
 - `rank-bm25` is no longer a dependency.
+
+## Update 2026-11-06: tokenizer v2 and verification
+
+Checked on the live index (451 chunks) with the keyword branch alone
+(`RETRIEVAL_MODE=sparse`) on 15 `keyword` eval questions:
+
+- Bare identifiers and terms (`select_related`, `AUTH_USER_MODEL`, `ego_graph`,
+  "eigenvector centrality") ranked the right section first. "bootstrap" filtered to
+  each book found that book's meaning, so filters do apply to the keyword side.
+- Labels did not: `\w+` splits "Fig.8.11" into `8` and `11`, which every Fig. 8.x and
+  x.11 shares. **bm25-v2** also emits each dotted number as one token. First-hit rank,
+  v1 → v2: Fig. 8.11 3 → 1, Table 9.1 3 → 1, Sect. 11.2.1 12 → 4. On the other 35
+  answerable questions, sparse-only recall@5 and recall@20 did not change.
+- The table of contents (12 chunks) listed every section number and title, so it
+  outranked the sections themselves. The chunker now skips contents and index chapters;
+  without them, recall@5 rose from 48 to 49 of 50 and Sect. 11.2.1 ranked 3rd.
+- "KL divergence" (the TASKLIST example) is in neither indexed book, so it cannot be tested yet.

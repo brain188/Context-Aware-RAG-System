@@ -69,6 +69,34 @@ python -m pipeline.ingest --path books/bishop.pdf --title "Bishop PRML"   # one 
 
 Ingestion is idempotent per book: re-running one book replaces its chunks rather than
 duplicating them, so new books can be added without reprocessing the library.
+Tables of contents and indexes are not chunked: they cannot answer anything, and they
+would top keyword results for every section number they list.
+
+### Keyword search
+
+Each chunk also carries a BM25 sparse vector (`app/retrieval/sparse_encoder.py`), and
+Qdrant applies IDF at query time, so a restart rebuilds nothing and filters scope both
+branches ([ADR-0002](docs/adr/0002-qdrant-sparse-bm25.md)). The tokenizer keeps dotted
+numbers whole, so "Fig. 8.11" or "Sect. 11.2.1" finds that label rather than every figure
+sharing an 8 or an 11.
+
+The collection records its tokenizer version and BM25 settings. After a change to either,
+the API warns at startup and ingest refuses to write until you rebuild the keyword vectors
+from the stored text (seconds, no embedding model):
+
+```bash
+python -m pipeline.reindex_sparse --dry-run            # what would change
+python -m pipeline.reindex_sparse --drop-navigation    # rebuild; also delete old contents/index chunks
+```
+
+Each branch can be measured alone on the `keyword` questions (bare identifiers, labels,
+and one word filtered to each book). `--no-save` keeps the ablation out of the reports
+that CI compares:
+
+```bash
+python -m evaluation.run_eval --retrieval-only --tag keyword --no-save --set retrieval_mode=sparse
+python -m evaluation.run_eval --retrieval-only --tag keyword --no-save --set retrieval_mode=dense
+```
 
 ## Running the API and UI
 

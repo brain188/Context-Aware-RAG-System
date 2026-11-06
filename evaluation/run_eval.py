@@ -75,6 +75,7 @@ _CONFIG_FIELDS = (
     "llm_fallback_provider",
     "llm_temperature",
     "prompt_version",
+    "retrieval_mode",
     "retrieval_top_k",
     "rerank_top_k",
     "rrf_k",
